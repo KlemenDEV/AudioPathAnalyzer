@@ -20,6 +20,8 @@ add_executable(
         kissfft/tools/kiss_fftr.c
         signalreader/InputSignalReader.cpp
         signalreader/InputSignalReader.h
-        )
+        analyzer/DataAcquisition.cpp
+        analyzer/DataAcquisition.h
+        analyzer/Measurement.cpp analyzer/Measurement.h)
 
 target_link_libraries(AudioPathAnalyzer ${ALSA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

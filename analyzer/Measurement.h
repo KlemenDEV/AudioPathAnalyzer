@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef AUDIOPATHANALYZER_CONF_H
-#define AUDIOPATHANALYZER_CONF_H
+#ifndef AUDIOPATHANALYZER_MEASUREMENT_H
+#define AUDIOPATHANALYZER_MEASUREMENT_H
 
-#define SAMPLE_RATE 48000
+
+class Measurement {
+
+public:
+    Measurement();
+
+};
+
 
 #endif

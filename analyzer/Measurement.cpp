@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef AUDIOPATHANALYZER_CONF_H
-#define AUDIOPATHANALYZER_CONF_H
+#include "Measurement.h"
 
-#define SAMPLE_RATE 48000
+Measurement::Measurement() {
 
-#endif
+}

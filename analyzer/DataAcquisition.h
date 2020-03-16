@@ -14,43 +14,35 @@
  * limitations under the License.
  */
 
-#ifndef AUDIOPATHANALYZER_INPUTSIGNALREADER_H
-#define AUDIOPATHANALYZER_INPUTSIGNALREADER_H
+#ifndef AUDIOPATHANALYZER_DATAACQUISITION_H
+#define AUDIOPATHANALYZER_DATAACQUISITION_H
 
-#include <cmath>
-#include <climits>
-#include <iostream>
-#include <alsa/asoundlib.h>
+#include <map>
 
-#include <thread>
-#include <functional>
+#include <SineWaveGenerator.h>
+#include <InputSignalReader.h>
+#include <kiss_fftr.h>
 
-#include "../conf.h"
+#include "Measurement.h"
 
 using namespace std;
 
-class InputSignalReader {
+class DataAcquisition {
 
 private:
-    bool running = false;
+    SineWaveGenerator gen;
+    InputSignalReader reader;
 
-    snd_pcm_uframes_t bufferSize;
-    snd_pcm_t *pcm_handle;
+    snd_pcm_uframes_t in_buffer_size;
+    size_t fft_out_size;
 
-    function<void(snd_pcm_uframes_t, int16_t*)> callback;
-
-    void readSamples();
+    kiss_fftr_cfg fft;
+    float resolution;
 
 public:
-    InputSignalReader();
+    DataAcquisition();
 
-    void registerCallback(function<void(snd_pcm_uframes_t, int16_t*)> callback);
-
-    void start();
-    void stop();
-
-    snd_pcm_uframes_t getBufferSize();
-
+    map<int, Measurement> measure();
 };
 
 
