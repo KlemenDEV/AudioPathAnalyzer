@@ -77,6 +77,8 @@ void SineWaveGenerator::sendSamples() {
 
         snd_pcm_sframes_t frames = snd_pcm_writei(pcm_handle, vals, bufferSize);
 
+        snd_pcm_start(pcm_handle); // start sending data
+
         if (frames < 0) {
             cerr << "Failed to write, recovering" << endl;
             snd_pcm_recover(pcm_handle, frames, 0);
