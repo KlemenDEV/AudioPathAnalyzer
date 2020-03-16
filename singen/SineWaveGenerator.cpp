@@ -9,7 +9,7 @@ SineWaveGenerator::SineWaveGenerator() {
 
     snd_pcm_hw_params_alloca(&hwparams);
 
-    int open_err = snd_pcm_open(&pcm_handle, "plughw:0,0", SND_PCM_STREAM_PLAYBACK, 0);
+    int open_err = snd_pcm_open(&pcm_handle, "hw:0,0", SND_PCM_STREAM_PLAYBACK, 0);
     if(open_err < 0) {
         cerr << snd_strerror(open_err) << endl;
     }
@@ -21,9 +21,9 @@ SineWaveGenerator::SineWaveGenerator() {
 
     if (snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
         cerr << "Failed to set access" << endl;
-    if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_FLOAT) < 0)
+    if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16) < 0)
         cerr << "Failed to set format" << endl;
-    if (snd_pcm_hw_params_set_channels(pcm_handle, hwparams, 1) < 0)
+    if (snd_pcm_hw_params_set_channels(pcm_handle, hwparams, 2) < 0)
         cerr << "Failed to set channels" << endl;
 
     if (snd_pcm_hw_params_set_rate(pcm_handle, hwparams, SAMPLE_RATE, (int) 0) < 0)
@@ -48,15 +48,15 @@ SineWaveGenerator::SineWaveGenerator() {
 }
 
 void SineWaveGenerator::sendSamples() {
-    float vals[bufferSize];
+    int vals[bufferSize];
 
     snd_pcm_writei(pcm_handle, vals, bufferSize);
 
     while (running) {
-        float delta = (2.f * 3.141592653589793238462643383279502884197169399375105820974944f * f) / (float) SAMPLE_RATE;
+        float delta = (PI_2 * f) / (float) SAMPLE_RATE;
 
         for (int i = 0; i < bufferSize; i++) {
-            vals[i] = cos(phi);
+            vals[i] = SHRT_MAX * cos(phi);
             phi += delta;
         }
 
@@ -67,6 +67,7 @@ void SineWaveGenerator::sendSamples() {
             snd_pcm_recover(pcm_handle, frames, 0);
         }
 
+        phi = std::fmod(phi, PI_2);
     }
 }
 
