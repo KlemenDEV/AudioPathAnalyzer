@@ -18,5 +18,5 @@
 
 int main() {
     DataAcquisition dataAcquisition;
-    dataAcquisition.measure();
+    dataAcquisition.measure(128);
 }

@@ -39,10 +39,12 @@ private:
     kiss_fftr_cfg fft;
     float resolution;
 
+    int getLatencyInSamples();
+
 public:
     DataAcquisition();
 
-    map<int, Measurement> measure();
+    map<int, Measurement> measure(int steps);
 };
 
 
