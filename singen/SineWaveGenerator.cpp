@@ -48,15 +48,16 @@ SineWaveGenerator::SineWaveGenerator() {
 }
 
 void SineWaveGenerator::sendSamples() {
-    int vals[bufferSize];
+    int16_t vals[bufferSize * 2];
 
     snd_pcm_writei(pcm_handle, vals, bufferSize);
 
     while (running) {
         float delta = (PI_2 * f) / (float) SAMPLE_RATE;
 
-        for (int i = 0; i < bufferSize; i++) {
+        for (int i = 0; i < bufferSize * 2; i+=2) {
             vals[i] = SHRT_MAX * cos(phi);
+            vals[i + 1] = vals[i];
             phi += delta;
         }
 

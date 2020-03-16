@@ -21,14 +21,14 @@ private:
     snd_pcm_uframes_t bufferSize;
     snd_pcm_t *pcm_handle;
 
-    function<void(snd_pcm_uframes_t, float*)> callback;
+    function<void(snd_pcm_uframes_t, int16_t*)> callback;
 
     void readSamples();
 
 public:
     InputSignalReader();
 
-    void registerCallback(function<void(snd_pcm_uframes_t, float*)> callback);
+    void registerCallback(function<void(snd_pcm_uframes_t, int16_t*)> callback);
 
     void start();
     void stop();

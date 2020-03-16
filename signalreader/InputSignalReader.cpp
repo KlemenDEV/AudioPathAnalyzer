@@ -7,7 +7,7 @@ InputSignalReader::InputSignalReader() {
 
     snd_pcm_hw_params_t *hwparams;
 
-    int open_err = snd_pcm_open(&pcm_handle, strdup("plughw:0,0"), SND_PCM_STREAM_CAPTURE, 0);
+    int open_err = snd_pcm_open(&pcm_handle, strdup("hw:0,0"), SND_PCM_STREAM_CAPTURE, 0);
     if(open_err < 0) {
         cerr << snd_strerror(open_err) << endl;
     }
@@ -18,9 +18,9 @@ InputSignalReader::InputSignalReader() {
 
     if (snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
         cerr << "Failed to set access" << endl;
-    if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_FLOAT) < 0)
+    if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16) < 0)
         cerr << "Failed to set format" << endl;
-    if (snd_pcm_hw_params_set_channels(pcm_handle, hwparams, 1) < 0)
+    if (snd_pcm_hw_params_set_channels(pcm_handle, hwparams, 2) < 0)
         cerr << "Failed to set channels" << endl;
 
     if (snd_pcm_hw_params_set_rate(pcm_handle, hwparams, SAMPLE_RATE, (int) 0) < 0)
@@ -46,12 +46,12 @@ InputSignalReader::InputSignalReader() {
     snd_pcm_prepare(pcm_handle);
 }
 
-void InputSignalReader::registerCallback(function<void(snd_pcm_uframes_t, float*)> callbackparam) {
+void InputSignalReader::registerCallback(function<void(snd_pcm_uframes_t, int16_t*)> callbackparam) {
     this->callback = std::move(callbackparam);
 }
 
 void InputSignalReader::readSamples() {
-    float vals[bufferSize];
+    int16_t vals[bufferSize * 2]; // two channels
 
     while(running) {
         snd_pcm_readi(pcm_handle, vals, bufferSize);
