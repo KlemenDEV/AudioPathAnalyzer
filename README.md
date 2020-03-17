@@ -7,3 +7,9 @@ This project aims to develop an audio analyzer for analyzing audio transport pat
 It is written for Linux ALSA audio subsystem.
 
 This project is still very work in progress.
+
+# Cloning
+
+To clone the submodules too, use:
+
+`git clone --recursive https://github.com/KlemenDEV/AudioPathAnalyzer.git`
