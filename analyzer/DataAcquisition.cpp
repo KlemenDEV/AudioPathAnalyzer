@@ -24,8 +24,8 @@ DataAcquisition::DataAcquisition() {
     this->fft = kiss_fftr_alloc(in_buffer_size, 0, nullptr, nullptr);
 }
 
-map<int, Measurement> DataAcquisition::measure(int steps, int takes) {
-    map<int, Measurement> measurements;
+map<float, Measurement> DataAcquisition::measure(int steps, int takes) {
+    map<float, Measurement> measurements;
 
     kiss_fft_scalar fft_in[in_buffer_size];
     kiss_fft_cpx fft_out[fft_out_size];
@@ -51,39 +51,45 @@ map<int, Measurement> DataAcquisition::measure(int steps, int takes) {
 
     takes += latency;
 
-    reader.registerCallback(
-            [this, &fft_out, &fft_in, &meas_idx, &take_idx, steps, takes, &f_list, latency, &measurements_buffer](
-                    snd_pcm_uframes_t size, const int16_t *values) {
-                if (meas_idx < steps && take_idx == 0)
-                    gen.setFrequency(f_list[meas_idx]);
+    reader.registerCallback([&](
+            snd_pcm_uframes_t size, const int16_t *values) {
+        if (meas_idx < steps && take_idx == 0)
+            gen.setFrequency(f_list[meas_idx]);
 
-                take_idx++;
+        take_idx++;
 
-                // we do not measure "latency" steps
-                if (take_idx > latency) {
-                    // de-interleave channels
-                    for (int i = 0; i < size; i++) {
-                        if (i % 2 == 0)
-                            fft_in[i / 2] = values[i];
-                    }
+        // we do not measure "latency" steps
+        if (take_idx > latency) {
+            // de-interleave channels
+            for (int i = 0; i < size; i++) {
+                if (i % 2 == 0)
+                    fft_in[i / 2] = values[i];
+            }
 
-                    kiss_fftr(fft, fft_in, fft_out);
+            kiss_fftr(fft, fft_in, fft_out);
 
-                    Measurement measurement(f_list[meas_idx], fft_out, fft_out_size, resolution);
-                    measurements_buffer.emplace_back(measurement)
-                }
+            Measurement measurement(f_list[meas_idx], fft_out, fft_out_size, resolution);
+            measurements_buffer.emplace_back(measurement);
+        }
 
-                if (take_idx >= takes) {
-                    meas_idx++;
-                    take_idx = 0; // reset takes counter, next f
+        if (take_idx >= takes) {
+            meas_idx++;
+            take_idx = 0; // reset takes counter, next f
 
-                    // we need to wait "latency" more steps to capture all measurements
-                    if (meas_idx >= steps) {
-                        reader.stop();
-                        gen.stop();
-                    }
-                }
-            });
+            Measurement avg =
+                    accumulate(measurements_buffer.begin(), measurements_buffer.end(), Measurement()) /
+                    measurements_buffer.size();
+            measurements[avg.f] = avg;
+
+            measurements_buffer.clear();
+
+            // we need to wait "latency" more steps to capture all measurements
+            if (meas_idx >= steps) {
+                reader.stop();
+                gen.stop();
+            }
+        }
+    });
 
     reader.start();
     gen.start();
@@ -93,24 +99,23 @@ map<int, Measurement> DataAcquisition::measure(int steps, int takes) {
 
 int DataAcquisition::getLatencyInSamples() {
     int samplesCount = 0;
-    reader.registerCallback(
-            [this, &samplesCount](snd_pcm_uframes_t size, const int16_t *values) {
-                if (samplesCount == 0)
-                    gen.setFrequency(3000);
+    reader.registerCallback([this, &samplesCount](snd_pcm_uframes_t size, const int16_t *values) {
+        if (samplesCount == 0)
+            gen.setFrequency(3000);
 
-                unsigned long ampl = 0;
-                for (int i = 0; i < size; i++) {
-                    if (i % 2 == 0)
-                        ampl += abs(values[i]) / size;
-                }
+        unsigned long ampl = 0;
+        for (int i = 0; i < size; i++) {
+            if (i % 2 == 0)
+                ampl += abs(values[i]) / size;
+        }
 
-                samplesCount++;
+        samplesCount++;
 
-                if (ampl > 1000) {
-                    reader.stop();
-                    gen.stop();
-                }
-            });
+        if (ampl > 1000) {
+            reader.stop();
+            gen.stop();
+        }
+    });
 
     reader.start();
     gen.start();

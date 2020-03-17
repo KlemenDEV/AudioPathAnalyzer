@@ -25,18 +25,25 @@ using namespace std;
 
 class Measurement {
 
-private:
-    float f;
-
 public:
+    float f = 0;
+    float energy = 0;
+    float f_amplitude = 0;
+
     Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution);
 
     // copy constructor
     Measurement(const Measurement &m) {
         f = m.f;
+        energy = m.energy;
+        f_amplitude = m.f_amplitude;
     }
 
+    Measurement() = default;
+
     Measurement operator+ (const Measurement & first);
+
+    Measurement operator/ (int n);
 
 };
 

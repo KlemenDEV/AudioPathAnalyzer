@@ -17,31 +17,36 @@
 #include "Measurement.h"
 
 Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution) {
-    float maxA = 0;
-    int maxi = 0;
+    this->f = gen_f;
 
-    float energy = 0;
+    int maxi = 0;
 
     for (int i = 0; i < fft_out_size; i++) {
         float A = sqrt(fft_out[i].r * fft_out[i].r + fft_out[i].i * fft_out[i].i) / fft_out_size;
 
-        energy += A;
+        this->energy += A;
 
-        if (A > maxA) {
-            maxA = A;
+        if (A > this->f_amplitude) {
+            this->f_amplitude = A;
             maxi = i;
         }
     }
 
-    // f: ((float) maxi * resolution)
-
-    cout << gen_f << "," << maxA << endl;
+    float measured_f = (float) maxi * resolution;
 }
 
-Measurement Measurement::operator+ (const Measurement &first) {
+Measurement Measurement::operator+(const Measurement &first) {
     Measurement retval = first;
-
     retval.f += this->f;
+    retval.energy += this->energy;
+    retval.f_amplitude += this->f_amplitude;
+    return retval;
+}
 
+Measurement Measurement::operator/(int n) {
+    Measurement retval;
+    retval.f = this->f / (float) n;
+    retval.energy = this->energy / (float) n;
+    retval.f_amplitude = this->f_amplitude / (float) n;
     return retval;
 }

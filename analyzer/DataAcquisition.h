@@ -19,6 +19,7 @@
 
 #include <map>
 #include <vector>
+#include <numeric>
 
 #include <SineWaveGenerator.h>
 #include <InputSignalReader.h>
@@ -45,7 +46,7 @@ private:
 public:
     DataAcquisition();
 
-    map<int, Measurement> measure(int steps, int takes);
+    map<float, Measurement> measure(int steps, int takes);
 };
 
 
