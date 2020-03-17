@@ -21,7 +21,7 @@ InputSignalReader::InputSignalReader() {
 
     snd_pcm_hw_params_t *hwparams;
 
-    int open_err = snd_pcm_open(&pcm_handle, strdup("hw:0,0"), SND_PCM_STREAM_CAPTURE, 0);
+    int open_err = snd_pcm_open(&pcm_handle, strdup("hw:1,0"), SND_PCM_STREAM_CAPTURE, 0);
     if(open_err < 0) {
         cerr << snd_strerror(open_err) << endl;
     }
@@ -42,7 +42,7 @@ InputSignalReader::InputSignalReader() {
     if (snd_pcm_hw_params_set_periods(pcm_handle, hwparams, 4, 0) < 0)
         cerr << "Failed to set periods" << endl;
 
-    snd_pcm_uframes_t period_size = 4096;
+    snd_pcm_uframes_t period_size = 1024;
     if (snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &period_size, nullptr) < 0)
         cerr << "Failed to set period size" << endl;
 

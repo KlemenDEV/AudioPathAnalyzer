@@ -23,8 +23,8 @@ SineWaveGenerator::SineWaveGenerator() {
 
     snd_pcm_hw_params_alloca(&hwparams);
 
-    int open_err = snd_pcm_open(&pcm_handle, "hw:0,0", SND_PCM_STREAM_PLAYBACK, 0);
-    if(open_err < 0) {
+    int open_err = snd_pcm_open(&pcm_handle, OUT_DEVICE, SND_PCM_STREAM_PLAYBACK, 0);
+    if (open_err < 0) {
         cerr << snd_strerror(open_err) << endl;
     }
 
@@ -67,12 +67,16 @@ void SineWaveGenerator::sendSamples() {
     snd_pcm_writei(pcm_handle, vals, bufferSize);
 
     while (running) {
-        float delta = (PI_2 * f) / (float) SAMPLE_RATE;
+        if (f > 0) {
+            float delta = (PI_2 * f) / (float) SAMPLE_RATE;
 
-        for (int i = 0; i < bufferSize * 2; i+=2) {
-            vals[i] = SHRT_MAX * cos(phi);
-            vals[i + 1] = vals[i];
-            phi += delta;
+            for (int i = 0; i < bufferSize * 2; i += 2) {
+                vals[i] = 32767 * cos(phi);
+                vals[i + 1] = vals[i];
+                phi += delta;
+            }
+        } else { // if f = 0: send zeros
+            memset(vals, 0, sizeof vals);
         }
 
         snd_pcm_sframes_t frames = snd_pcm_writei(pcm_handle, vals, bufferSize);

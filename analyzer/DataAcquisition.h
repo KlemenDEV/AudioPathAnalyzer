@@ -18,6 +18,7 @@
 #define AUDIOPATHANALYZER_DATAACQUISITION_H
 
 #include <map>
+#include <vector>
 
 #include <SineWaveGenerator.h>
 #include <InputSignalReader.h>
@@ -44,7 +45,7 @@ private:
 public:
     DataAcquisition();
 
-    map<int, Measurement> measure(int steps);
+    map<int, Measurement> measure(int steps, int takes);
 };
 
 

@@ -19,4 +19,6 @@
 
 #define SAMPLE_RATE 48000
 
+#define OUT_DEVICE "hw:1,0"
+
 #endif

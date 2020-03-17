@@ -17,11 +17,26 @@
 #ifndef AUDIOPATHANALYZER_MEASUREMENT_H
 #define AUDIOPATHANALYZER_MEASUREMENT_H
 
+#include <iostream>
+
+#include <kiss_fft.h>
+
+using namespace std;
 
 class Measurement {
 
+private:
+    float f;
+
 public:
-    Measurement();
+    Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution);
+
+    // copy constructor
+    Measurement(const Measurement &m) {
+        f = m.f;
+    }
+
+    Measurement operator+ (const Measurement & first);
 
 };
 

@@ -4,7 +4,9 @@ This project aims to develop an audio analyzer for analyzing audio transport pat
 * First-order frequency response
 * Harmonic distortion properties
 
-It is written for Linux ALSA audio subsystem.
+It is written for Linux ALSA audio subsystem, so ALSA-dev is required for building:
+
+`apt install libasound2-dev`
 
 This project is still very work in progress.
 

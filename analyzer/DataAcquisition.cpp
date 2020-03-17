@@ -24,12 +24,79 @@ DataAcquisition::DataAcquisition() {
     this->fft = kiss_fftr_alloc(in_buffer_size, 0, nullptr, nullptr);
 }
 
+map<int, Measurement> DataAcquisition::measure(int steps, int takes) {
+    map<int, Measurement> measurements;
+
+    kiss_fft_scalar fft_in[in_buffer_size];
+    kiss_fft_cpx fft_out[fft_out_size];
+
+    float f_list[steps];
+
+    double max_f_log = log((float) SAMPLE_RATE / 2.f) / log(10);
+
+    double d_gen = max_f_log / (double) steps;
+
+    for (int i = 0; i < steps; i++) {
+        f_list[i] = (float) pow(10, d_gen * (float) (i + 1)) + 10;
+    }
+
+    int meas_idx = 0;
+    int take_idx = 0;
+
+    int latency = this->getLatencyInSamples();
+
+    cout << "Measured latency: " << latency << endl;
+
+    vector<Measurement> measurements_buffer;
+
+    takes += latency;
+
+    reader.registerCallback(
+            [this, &fft_out, &fft_in, &meas_idx, &take_idx, steps, takes, &f_list, latency, &measurements_buffer](
+                    snd_pcm_uframes_t size, const int16_t *values) {
+                if (meas_idx < steps && take_idx == 0)
+                    gen.setFrequency(f_list[meas_idx]);
+
+                take_idx++;
+
+                // we do not measure "latency" steps
+                if (take_idx > latency) {
+                    // de-interleave channels
+                    for (int i = 0; i < size; i++) {
+                        if (i % 2 == 0)
+                            fft_in[i / 2] = values[i];
+                    }
+
+                    kiss_fftr(fft, fft_in, fft_out);
+
+                    Measurement measurement(f_list[meas_idx], fft_out, fft_out_size, resolution);
+                    measurements_buffer.emplace_back(measurement)
+                }
+
+                if (take_idx >= takes) {
+                    meas_idx++;
+                    take_idx = 0; // reset takes counter, next f
+
+                    // we need to wait "latency" more steps to capture all measurements
+                    if (meas_idx >= steps) {
+                        reader.stop();
+                        gen.stop();
+                    }
+                }
+            });
+
+    reader.start();
+    gen.start();
+
+    return measurements;
+}
+
 int DataAcquisition::getLatencyInSamples() {
     int samplesCount = 0;
     reader.registerCallback(
             [this, &samplesCount](snd_pcm_uframes_t size, const int16_t *values) {
                 if (samplesCount == 0)
-                    gen.setFrequency(4000);
+                    gen.setFrequency(3000);
 
                 unsigned long ampl = 0;
                 for (int i = 0; i < size; i++) {
@@ -49,70 +116,4 @@ int DataAcquisition::getLatencyInSamples() {
     gen.start();
 
     return samplesCount;
-}
-
-map<int, Measurement> DataAcquisition::measure(int steps) {
-    map<int, Measurement> measurements;
-
-    kiss_fft_scalar fft_in[in_buffer_size];
-    kiss_fft_cpx fft_out[fft_out_size];
-
-    float f_list[steps];
-
-    double max_f_log = log((float) SAMPLE_RATE / 2.f) / log(10);
-
-    double d_gen = max_f_log / (double) steps;
-
-    for (int i = 0; i < steps; i++) {
-        f_list[i] = pow(10, d_gen * (float) i);
-    }
-
-    int meas_idx = 0;
-
-    int latency = this->getLatencyInSamples();
-
-    reader.registerCallback(
-            [this, &fft_out, &fft_in, &meas_idx, steps, &f_list, latency](snd_pcm_uframes_t size,
-                                                                          const int16_t *values) {
-                gen.setFrequency(f_list[meas_idx]);
-
-                // de-interleave channels
-                for (int i = 0; i < size; i++) {
-                    if (i % 2 == 0)
-                        fft_in[i / 2] = values[i];
-                }
-
-                kiss_fftr(fft, fft_in, fft_out);
-
-                float maxA = 0;
-                int maxi = 0;
-
-                float energySum = 0;
-
-                for (int i = 0; i < fft_out_size; i++) {
-                    float A = sqrt(fft_out[i].r * fft_out[i].r + fft_out[i].i * fft_out[i].i) / fft_out_size;
-
-                    energySum += A;
-
-                    if (A >= maxA) {
-                        maxA = A;
-                        maxi = i;
-                    }
-                }
-
-                if (meas_idx - latency > 0) {
-                    cout << f_list[meas_idx - latency] << " : " << ((float) maxi * resolution) << endl;
-                }
-
-                meas_idx++;
-                if (meas_idx >= steps) {
-                    reader.stop();
-                    gen.stop();
-                }
-            });
-
-    reader.start();
-    gen.start();
-
-    return measurements;
 }
