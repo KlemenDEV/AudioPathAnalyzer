@@ -18,32 +18,42 @@
 #define AUDIOPATHANALYZER_MEASUREMENT_H
 
 #include <iostream>
-
+#include <vector>
 #include <kiss_fft.h>
 
 using namespace std;
 
+typedef struct {
+    float f;
+    float a;
+} peak_t;
+
 class Measurement {
+
+private:
+    static peak_t fft_interpolate_peak(int bin_idx, float resolution, float a, float b, float c);
 
 public:
     float f = 0;
-    float energy = 0;
-    float f_amplitude = 0;
+    float a = 0;
+    float thd_f = 0;
+    float thd_r = 0;
 
     Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution);
 
     // copy constructor
     Measurement(const Measurement &m) {
+        a = m.a;
         f = m.f;
-        energy = m.energy;
-        f_amplitude = m.f_amplitude;
+        thd_f = m.thd_f;
+        thd_r = m.thd_r;
     }
 
     Measurement() = default;
 
-    Measurement operator+ (const Measurement & first);
+    Measurement operator+(const Measurement &first);
 
-    Measurement operator/ (int n);
+    Measurement operator/(int n);
 
 };
 

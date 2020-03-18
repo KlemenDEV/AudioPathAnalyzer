@@ -17,7 +17,6 @@
 #ifndef AUDIOPATHANALYZER_DATAACQUISITION_H
 #define AUDIOPATHANALYZER_DATAACQUISITION_H
 
-#include <map>
 #include <vector>
 #include <numeric>
 
@@ -46,7 +45,7 @@ private:
 public:
     DataAcquisition();
 
-    map<float, Measurement> measure(int steps, int takes);
+    vector<Measurement> measure(int steps);
 };
 
 

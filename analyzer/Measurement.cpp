@@ -19,34 +19,87 @@
 Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution) {
     this->f = gen_f;
 
-    int maxi = 0;
-
+    // calculate amplitude spectrum
+    float energy = 0;
+    float aspectr[fft_out_size + 1];
     for (int i = 0; i < fft_out_size; i++) {
-        float A = sqrt(fft_out[i].r * fft_out[i].r + fft_out[i].i * fft_out[i].i) / fft_out_size;
+        aspectr[i] = sqrt(fft_out[i].r * fft_out[i].r + fft_out[i].i * fft_out[i].i) / fft_out_size;
+        energy += aspectr[i];
+    }
 
-        this->energy += A;
+    aspectr[fft_out_size] = 0; // to make the peak detection work for the max f too
 
-        if (A > this->f_amplitude) {
-            this->f_amplitude = A;
-            maxi = i;
+    // determine spectrum peaks
+    float max_f = 0;
+    vector<peak_t> peaks;
+    float avg = energy / fft_out_size;
+    for (int i = 1; i < fft_out_size; i++) {
+        if (aspectr[i - 1] <= aspectr[i] && aspectr[i + 1] <= aspectr[i]) { // peak
+            if (aspectr[i] > avg / 4) { // major peaks only
+                peak_t peak = fft_interpolate_peak(i, resolution, aspectr[i - 1], aspectr[i], aspectr[i + 1]);
+                peaks.push_back(peak);
+
+                if (peak.f > max_f)
+                    max_f = peak.f;
+            }
         }
     }
 
-    float measured_f = (float) maxi * resolution;
+    // now we try to match peaks with multiplies of gen_f
+    vector<peak_t> harmonics;
+    for (int i = 1; i <= (int) ceil(max_f / gen_f); i++) {
+        float hf = gen_f * (float) i;
+        for (peak_t &p : peaks) {
+            if (abs(p.f - hf) < resolution) {
+                p.f = hf;
+                harmonics.push_back(p);
+                break;
+            }
+        }
+    }
+
+    float harmonicsSquareSum = 0;
+    float signalSquareSum = 0;
+
+    // calculate some signal statistics
+    bool first = true;
+    for (peak_t &hp : harmonics) {
+        signalSquareSum += hp.a * hp.a;
+        if (!first)
+            harmonicsSquareSum += hp.a * hp.a;
+        else
+            first = false;
+    }
+
+    harmonicsSquareSum = sqrt(harmonicsSquareSum);
+    signalSquareSum = sqrt(signalSquareSum);
+
+    this->a = harmonics[0].a;
+    this->thd_f = harmonicsSquareSum / harmonics[0].a;
+    this->thd_r = harmonicsSquareSum / signalSquareSum;
+}
+
+peak_t Measurement::fft_interpolate_peak(int bin_idx, float resolution, float a, float b, float c) {
+    float p = 0.5f * (a - c) / (a - 2 * b + c);
+    float f = ((float) bin_idx + p) * resolution;
+    float amplitude = b - 0.25f * (a - c) * p;
+    return {f, amplitude};
 }
 
 Measurement Measurement::operator+(const Measurement &first) {
     Measurement retval = first;
     retval.f += this->f;
-    retval.energy += this->energy;
-    retval.f_amplitude += this->f_amplitude;
+    retval.a += this->a;
+    retval.thd_f += this->thd_f;
+    retval.thd_r += this->thd_r;
     return retval;
 }
 
 Measurement Measurement::operator/(int n) {
     Measurement retval;
     retval.f = this->f / (float) n;
-    retval.energy = this->energy / (float) n;
-    retval.f_amplitude = this->f_amplitude / (float) n;
+    retval.a = this->a / (float) n;
+    retval.thd_f = this->thd_f / (float) n;
+    retval.thd_r = this->thd_r / (float) n;
     return retval;
 }

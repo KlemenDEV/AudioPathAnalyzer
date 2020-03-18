@@ -18,5 +18,15 @@
 
 int main() {
     DataAcquisition dataAcquisition;
-    dataAcquisition.measure(256, 1);
+    vector<Measurement> measurements = dataAcquisition.measure(100);
+
+    float max_a = 0;
+    for(Measurement &m : measurements) {
+        if (max_a < m.a)
+            max_a = m.a;
+    }
+
+    for(Measurement &m : measurements) {
+        cout << m.f << "," << 20*log10(m.a/max_a) << endl;
+    }
 }
