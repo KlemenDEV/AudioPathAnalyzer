@@ -85,21 +85,3 @@ peak_t Measurement::fft_interpolate_peak(int bin_idx, float resolution, float a,
     float amplitude = b - 0.25f * (a - c) * p;
     return {f, amplitude};
 }
-
-Measurement Measurement::operator+(const Measurement &first) {
-    Measurement retval = first;
-    retval.f += this->f;
-    retval.a += this->a;
-    retval.thd_f += this->thd_f;
-    retval.thd_r += this->thd_r;
-    return retval;
-}
-
-Measurement Measurement::operator/(int n) {
-    Measurement retval;
-    retval.f = this->f / (float) n;
-    retval.a = this->a / (float) n;
-    retval.thd_f = this->thd_f / (float) n;
-    retval.thd_r = this->thd_r / (float) n;
-    return retval;
-}

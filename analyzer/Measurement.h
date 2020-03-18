@@ -41,19 +41,7 @@ public:
 
     Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution);
 
-    // copy constructor
-    Measurement(const Measurement &m) {
-        a = m.a;
-        f = m.f;
-        thd_f = m.thd_f;
-        thd_r = m.thd_r;
-    }
-
     Measurement() = default;
-
-    Measurement operator+(const Measurement &first);
-
-    Measurement operator/(int n);
 
 };
 
