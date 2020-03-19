@@ -42,7 +42,7 @@ InputSignalReader::InputSignalReader() {
     if (snd_pcm_hw_params_set_periods(pcm_handle, hwparams, 4, 0) < 0)
         cerr << "Failed to set periods" << endl;
 
-    snd_pcm_uframes_t period_size = 512;
+    snd_pcm_uframes_t period_size = 1024;
     if (snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &period_size, nullptr) < 0)
         cerr << "Failed to set period size" << endl;
 

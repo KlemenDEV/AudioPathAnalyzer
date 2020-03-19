@@ -23,7 +23,7 @@ int main() {
     DataAcquisition dataAcquisition;
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    vector<Measurement> measurements = dataAcquisition.measure(250);
+    vector<Measurement> measurements = dataAcquisition.measure(200);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
     std::cout << "Measurement time = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;

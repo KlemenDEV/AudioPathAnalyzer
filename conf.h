@@ -23,6 +23,6 @@
 #define IN_DEVICE "hw:1,0"
 
 #define MEAS_F_LOW 20
-#define MEAS_F_HIGH SAMPLE_RATE / 2
+#define MEAS_F_HIGH 20000
 
 #endif
