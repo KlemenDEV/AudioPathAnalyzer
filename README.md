@@ -16,7 +16,7 @@ This project is still very work in progress.
 Frequency response is determined by:
 1. Sweeping across the range of sound card using logarithmic scale
 2. Sampling recorded input into a buffer
-3. Removing DC component
+3. Removing DC component and windowing the samples
 4. FFT-ing the data
 5. Detecting peaks
 6. Correlating peaks to the harmonics of the measured frequency

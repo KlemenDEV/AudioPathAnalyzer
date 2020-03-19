@@ -32,10 +32,10 @@ Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size
     // determine spectrum peaks
     float max_f = 0;
     vector<peak_t> peaks;
-    float avg = energy / fft_out_size;
+    float limit = (energy / fft_out_size) / 32.f;
     for (int i = 1; i < fft_out_size; i++) {
         if (aspectr[i - 1] <= aspectr[i] && aspectr[i + 1] <= aspectr[i]) { // peak
-            if (aspectr[i] > avg / 4) { // major peaks only
+            if (aspectr[i] > limit) { // major peaks only
                 peak_t peak = fft_interpolate_peak(i, resolution, aspectr[i - 1], aspectr[i], aspectr[i + 1]);
                 peaks.push_back(peak);
 
