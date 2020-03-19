@@ -46,17 +46,23 @@ Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size
     }
 
     // now we try to match peaks with multiplies of gen_f
+    bool f_found = false;
     vector<peak_t> harmonics;
     for (int i = 1; i <= (int) ceil(max_f / gen_f); i++) {
         float hf = gen_f * (float) i;
         for (peak_t &p : peaks) {
             if (abs(p.f - hf) < resolution) {
+                if(i == 1)
+                    f_found = true;
                 p.f = hf;
                 harmonics.push_back(p);
                 break;
             }
         }
     }
+
+    if (!f_found)
+        cerr << "Main peak not found for f = " << gen_f << endl;
 
     float harmonicsSquareSum = 0;
     float signalSquareSum = 0;

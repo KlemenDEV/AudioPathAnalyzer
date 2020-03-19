@@ -18,7 +18,7 @@
 
 int main() {
     DataAcquisition dataAcquisition;
-    vector<Measurement> measurements = dataAcquisition.measure(100);
+    vector<Measurement> measurements = dataAcquisition.measure(250);
 
     float max_a = 0;
     for (Measurement &m : measurements) {

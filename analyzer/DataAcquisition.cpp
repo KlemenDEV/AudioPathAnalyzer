@@ -57,23 +57,21 @@ vector<Measurement> DataAcquisition::measure(int steps) {
         if (take_idx > latency) {
             float dc_offset = 0;
 
-            // de-interleave channels
+            // de-interleave channels, apply Hann window and get dc_offset estimate
             for (int i = 0; i < size; i++) {
                 if (i % 2 == 0) {
-                    fft_in[i / 2] = values[i];
-                    dc_offset += (float) values[i];
+                    int idx = i / 2;
+                    float multiplier = 0.5f * (1 - cos(PI_2 * (float) idx / (float) in_buffer_size));
+                    fft_in[idx] = multiplier * (float) values[i];
+                    dc_offset += fft_in[idx];
                 }
             }
 
             dc_offset /= (float) in_buffer_size;
 
             // remove dc offset
-            // and apply Hann window at the same time to reduce spectral leakage
             for (int i = 0; i < in_buffer_size; i++) {
                 fft_in[i] -= dc_offset;
-
-                float multiplier = 0.5f * (1 - cos(PI_2 * (float) i / (float) (in_buffer_size - 1)));
-                fft_in[i] = multiplier * fft_in[i];
             }
 
             kiss_fftr(fft, fft_in, fft_out);
