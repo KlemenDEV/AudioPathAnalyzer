@@ -20,5 +20,9 @@
 #define SAMPLE_RATE 48000
 
 #define OUT_DEVICE "hw:1,0"
+#define IN_DEVICE "hw:1,0"
+
+#define MEAS_F_LOW 20
+#define MEAS_F_HIGH SAMPLE_RATE / 2
 
 #endif

@@ -36,10 +36,12 @@ vector<Measurement> DataAcquisition::measure(int steps) {
     cout << "Measured latency: " << latency << endl;
 
     float f_list[steps];
-    double max_f_log = log10((float) SAMPLE_RATE / 2.f);
-    double d_gen = max_f_log / (double) steps;
+
+    double min_f_log = log10(MEAS_F_LOW);
+    double max_f_log = log10(MEAS_F_HIGH);
+    double d_gen = (max_f_log - min_f_log) / (double) (steps - 1);
     for (int i = 0; i < steps; i++) {
-        f_list[i] = min((float) pow(10, d_gen * (float) (i + 1)) + 10, SAMPLE_RATE / 2.f);
+        f_list[i] = pow(10, min_f_log + d_gen * i);
     }
 
     int meas_idx = 0;

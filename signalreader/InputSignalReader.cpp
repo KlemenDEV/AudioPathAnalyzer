@@ -21,7 +21,7 @@ InputSignalReader::InputSignalReader() {
 
     snd_pcm_hw_params_t *hwparams;
 
-    int open_err = snd_pcm_open(&pcm_handle, strdup("hw:1,0"), SND_PCM_STREAM_CAPTURE, 0);
+    int open_err = snd_pcm_open(&pcm_handle, IN_DEVICE, SND_PCM_STREAM_CAPTURE, 0);
     if(open_err < 0) {
         cerr << snd_strerror(open_err) << endl;
     }
