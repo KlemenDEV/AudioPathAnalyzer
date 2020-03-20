@@ -21,68 +21,52 @@ Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size
     this->f = gen_f;
 
     // calculate amplitude spectrum
-    float energy = 0;
-    float aspectr[fft_out_size + 1];
+    float aspectr[fft_out_size + 1]; // +1 to make the peak detection work for the max f too
     for (int i = 0; i < fft_out_size; i++) {
         aspectr[i] = sqrt(fft_out[i].r * fft_out[i].r + fft_out[i].i * fft_out[i].i) / fft_out_size;
-        energy += aspectr[i];
     }
 
-    aspectr[fft_out_size] = 0; // to make the peak detection work for the max f too
-
-    // determine spectrum peaks
-    float max_f = 0;
-    vector<peak_t> peaks;
-    float limit = (energy / fft_out_size) / 32.f;
-    for (int i = 1; i < fft_out_size; i++) {
-        if (aspectr[i - 1] <= aspectr[i] && aspectr[i + 1] <= aspectr[i]) { // peak
-            if (aspectr[i] > limit) { // major peaks only
-                peak_t peak = fft_interpolate_peak(i, resolution, aspectr[i - 1], aspectr[i], aspectr[i + 1]);
-
-                peaks.push_back(peak);
-
-                if (peak.f > max_f)
-                    max_f = peak.f;
-            }
-        }
-    }
-
-    // trim peaks count to max. number of harmonics possible * 1.5
-    peaks.resize((SAMPLE_RATE / gen_f));
-
-    // now we try to match peaks with multiplies of gen_f
-    vector<peak_t> harmonics;
-    for (int i = 1; i <= (int) ceil(max_f / gen_f); i++) {
-        float hf = gen_f * (float) i;
-        for (peak_t &p : peaks) {
-            if (abs(p.f - hf) < resolution) {
-                if(i == 1)
-                    this->valid = true;
-                p.f = hf;
-                harmonics.push_back(p);
-                break;
-            }
-        }
-    }
-
+    // extract harmonics
     float harmonicsSquareSum = 0;
     float signalSquareSum = 0;
 
-    // calculate some signal statistics
-    bool first = true;
-    for (peak_t &hp : harmonics) {
-        signalSquareSum += hp.a * hp.a;
-        if (!first)
-            harmonicsSquareSum += hp.a * hp.a;
-        else
-            first = false;
+    int harmonics_count = (int) (SAMPLE_RATE / gen_f);
+    for (int hi = 1; hi <= harmonics_count; hi++) { // iterate through harmonic multiplies
+        float fh = (float) hi * gen_f;
+        int idx = (int) (fh / resolution);
+
+        for (int j = -1; j <= 1; j++) { // search for peak in [idx - 1, idx + 1] range
+            int i = idx + j;
+
+            // bounds check
+            if (i < 1) i = 1;
+            if (i > fft_out_size - 1) i = (int) fft_out_size - 1;
+
+            if (aspectr[i - 1] <= aspectr[i] && aspectr[i + 1] <= aspectr[i]) { // make sure it is peak
+                peak_t peak = fft_interpolate_peak(i, resolution, aspectr[i - 1], aspectr[i], aspectr[i + 1]);
+
+                signalSquareSum += peak.a * peak.a;
+
+                if (hi == 1) {
+                    this->valid = true;
+                    this->a = peak.a;
+                } else {
+                    harmonicsSquareSum += peak.a * peak.a;
+                }
+
+                break; // peak was found, to the next harmonic
+            }
+        }
+    }
+
+    if (!this->valid) { // if we did not find main f peak, we "fallback" to direct bin value
+        this->a = aspectr[(int) round(gen_f / resolution)];
     }
 
     harmonicsSquareSum = sqrt(harmonicsSquareSum);
     signalSquareSum = sqrt(signalSquareSum);
 
-    this->a = harmonics[0].a;
-    this->thd_f = harmonicsSquareSum / harmonics[0].a;
+    this->thd_f = harmonicsSquareSum / this->a;
     this->thd_r = harmonicsSquareSum / signalSquareSum;
 }
 
