@@ -22,6 +22,6 @@ add_executable(
         signalreader/InputSignalReader.h
         analyzer/DataAcquisition.cpp
         analyzer/DataAcquisition.h
-        analyzer/Measurement.cpp analyzer/Measurement.h)
+        analyzer/Measurement.cpp analyzer/Measurement.h analyzer/Smoothing.tcc)
 
 target_link_libraries(AudioPathAnalyzer ${ALSA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

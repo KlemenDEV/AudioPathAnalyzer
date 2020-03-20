@@ -24,16 +24,18 @@ DataAcquisition::DataAcquisition() {
     cout << "FFT frequency resolution: " << this->resolution << endl;
 
     this->fft = kiss_fftr_alloc(in_buffer_size, 0, nullptr, nullptr);
+
+    this->latency = this->getLatencyInSamples();
+    cout << "Measured latency: " << this->latency << endl;
 }
 
 vector<Measurement> DataAcquisition::measure(int steps) {
     vector<Measurement> measurements;
 
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+
     kiss_fft_scalar fft_in[in_buffer_size];
     kiss_fft_cpx fft_out[fft_out_size];
-
-    int latency = this->getLatencyInSamples();
-    cout << "Measured latency: " << latency << endl;
 
     float f_list[steps];
 
@@ -47,6 +49,8 @@ vector<Measurement> DataAcquisition::measure(int steps) {
     int meas_idx = 0;
     int take_idx = 0;
     int takes = latency + 1;
+    
+    int invalidcounter = 0;
 
     reader.registerCallback([&](
             snd_pcm_uframes_t size, const int16_t *values) {
@@ -80,6 +84,11 @@ vector<Measurement> DataAcquisition::measure(int steps) {
 
             Measurement measurement(f_list[meas_idx], fft_out, fft_out_size, resolution);
             measurements.push_back(measurement);
+            
+            if (!measurement.valid)
+                invalidcounter++;
+
+            cout << "Measured at f = " << f_list[meas_idx] << endl;
         }
 
         if (take_idx >= takes) {
@@ -96,6 +105,11 @@ vector<Measurement> DataAcquisition::measure(int steps) {
 
     reader.start();
     gen.start();
+
+    cout << "Measurement complete, missed peaks: " << invalidcounter << endl;
+    
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    cout << "Measurement time = " << chrono::duration_cast<chrono::seconds>(end - begin).count() << "[s]" << endl;
 
     return measurements;
 }

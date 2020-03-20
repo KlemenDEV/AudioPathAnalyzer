@@ -15,6 +15,7 @@
  */
 
 #include "Measurement.h"
+#include "../conf.h"
 
 Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution) {
     this->f = gen_f;
@@ -37,6 +38,7 @@ Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size
         if (aspectr[i - 1] <= aspectr[i] && aspectr[i + 1] <= aspectr[i]) { // peak
             if (aspectr[i] > limit) { // major peaks only
                 peak_t peak = fft_interpolate_peak(i, resolution, aspectr[i - 1], aspectr[i], aspectr[i + 1]);
+
                 peaks.push_back(peak);
 
                 if (peak.f > max_f)
@@ -45,24 +47,23 @@ Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size
         }
     }
 
+    // trim peaks count to max. number of harmonics possible * 1.5
+    peaks.resize((SAMPLE_RATE / gen_f));
+
     // now we try to match peaks with multiplies of gen_f
-    bool f_found = false;
     vector<peak_t> harmonics;
     for (int i = 1; i <= (int) ceil(max_f / gen_f); i++) {
         float hf = gen_f * (float) i;
         for (peak_t &p : peaks) {
             if (abs(p.f - hf) < resolution) {
                 if(i == 1)
-                    f_found = true;
+                    this->valid = true;
                 p.f = hf;
                 harmonics.push_back(p);
                 break;
             }
         }
     }
-
-    if (!f_found)
-        cerr << "Main peak not found for f = " << gen_f << endl;
 
     float harmonicsSquareSum = 0;
     float signalSquareSum = 0;

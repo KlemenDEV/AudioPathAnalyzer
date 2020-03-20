@@ -21,12 +21,15 @@ InputSignalReader::InputSignalReader() {
 
     snd_pcm_hw_params_t *hwparams;
 
+    snd_pcm_hw_params_alloca(&hwparams);
+
     int open_err = snd_pcm_open(&pcm_handle, IN_DEVICE, SND_PCM_STREAM_CAPTURE, 0);
     if(open_err < 0) {
         cerr << snd_strerror(open_err) << endl;
     }
 
-    snd_pcm_hw_params_alloca(&hwparams);
+    snd_pcm_prepare(pcm_handle);
+    snd_pcm_drop(pcm_handle);
 
     snd_pcm_hw_params_any(pcm_handle, hwparams);
 
@@ -68,7 +71,13 @@ void InputSignalReader::readSamples() {
     int16_t vals[bufferSize * 2]; // two channels
 
     while(running) {
-        snd_pcm_readi(pcm_handle, vals, bufferSize);
+        snd_pcm_sframes_t frames = snd_pcm_readi(pcm_handle, vals, bufferSize);
+
+        if (frames < 0) {
+            cerr << "Failed to read, recovering" << endl;
+            snd_pcm_recover(pcm_handle, frames, 0);
+        }
+
         this->callback(bufferSize, vals);
     }
 }
@@ -76,6 +85,9 @@ void InputSignalReader::readSamples() {
 void InputSignalReader::start() {
     if(running)
         return;
+
+    snd_pcm_drop(pcm_handle);
+    snd_pcm_prepare(pcm_handle);
 
     running = true;
 
@@ -85,6 +97,9 @@ void InputSignalReader::start() {
 
 void InputSignalReader::stop() {
     running = false;
+
+    snd_pcm_drop(pcm_handle);
+    snd_pcm_prepare(pcm_handle);
 }
 
 snd_pcm_uframes_t InputSignalReader::getBufferSize() {

@@ -15,26 +15,45 @@
  */
 
 #include "analyzer/DataAcquisition.h"
-
-#include <chrono>
-
+#include "analyzer/Smoothing.tcc"
 
 int main() {
     DataAcquisition dataAcquisition;
 
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    vector<Measurement> measurements = dataAcquisition.measure(200);
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    cout << "Press [Enter] to start calibration";
+    getchar();
 
-    std::cout << "Measurement time = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
+    vector<Measurement> calibrations = dataAcquisition.measure(MEAS_STEPS);
 
+    cout << "Press [Enter] to start audio path measurement";
+    getchar();
+
+    vector<Measurement> measurements = dataAcquisition.measure(MEAS_STEPS);
+
+    // obtain maximal amplitude and remove calibration amount from measurements
     float max_a = 0;
-    for (Measurement &m : measurements) {
-        if (max_a < m.a)
-            max_a = m.a;
+    for (auto & calibration : calibrations) {
+        if (max_a < calibration.a)
+            max_a = calibration.a;
     }
 
-    for (Measurement &m : measurements) {
-        cout << m.f << "," << 20 * log10(m.a / max_a) << endl;
+    vector<float> amplitudes(calibrations.size());
+    vector<float> frequencies(calibrations.size());
+
+    for (int i = 0; i < calibrations.size(); ++i) {
+        if (calibrations[i].a != 0)
+            calibrations[i].a = 20 * log10(calibrations[i].a / max_a);
+
+        if (measurements[i].a != 0)
+            measurements[i].a = 20 * log10(measurements[i].a / max_a);
+
+        amplitudes[i] = measurements[i].a - calibrations[i].a;
+        frequencies[i] = measurements[i].f;
+    }
+
+    amplitudes = Smoothing::smooth(amplitudes);
+
+    for (int i = 0; i < amplitudes.size(); ++i) {
+        cout << frequencies[i] << ", " << amplitudes[i] << endl;
     }
 }

@@ -99,12 +99,18 @@ void SineWaveGenerator::start() {
     f = 0;
     running = true;
 
+    snd_pcm_drop(pcm_handle);
+    snd_pcm_prepare(pcm_handle);
+
     thread sineThread(&SineWaveGenerator::sendSamples, this);
     sineThread.join();
 }
 
 void SineWaveGenerator::stop() {
     running = false;
+
+    snd_pcm_drop(pcm_handle);
+    snd_pcm_prepare(pcm_handle);
 }
 
 void SineWaveGenerator::setFrequency(float f) {

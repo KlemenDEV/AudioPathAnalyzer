@@ -25,4 +25,6 @@
 #define MEAS_F_LOW 20
 #define MEAS_F_HIGH 20000
 
+#define MEAS_STEPS 200
+
 #endif
