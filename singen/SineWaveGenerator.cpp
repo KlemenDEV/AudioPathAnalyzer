@@ -75,7 +75,7 @@ void SineWaveGenerator::sendSamples() {
                 vals[i + 1] = vals[i];
                 phi += delta;
             }
-        } else { // if f = 0: send zeros
+        } else if (f == 0) { // if f = 0: send zeros
             memset(vals, 0, sizeof vals);
         }
 

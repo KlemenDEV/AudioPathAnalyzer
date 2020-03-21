@@ -38,6 +38,7 @@ public:
     float a = 0;
     float thd_f = 0;
     float thd_r = 0;
+    float thd_n = 0;
     bool valid = false;
 
     Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution);

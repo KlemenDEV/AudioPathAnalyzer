@@ -21,14 +21,17 @@ Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size
     this->f = gen_f;
 
     // calculate amplitude spectrum
+    float energy = 0;
     float aspectr[fft_out_size + 1]; // +1 to make the peak detection work for the max f too
     for (int i = 0; i < fft_out_size; i++) {
         aspectr[i] = sqrt(fft_out[i].r * fft_out[i].r + fft_out[i].i * fft_out[i].i) / fft_out_size;
+        energy += aspectr[i];
     }
 
     // extract harmonics
     float harmonicsSquareSum = 0;
     float signalSquareSum = 0;
+    int fundamentalIdx = 0;
 
     int harmonics_count = (int) (SAMPLE_RATE / gen_f);
     for (int hi = 1; hi <= harmonics_count; hi++) { // iterate through harmonic multiplies
@@ -50,6 +53,7 @@ Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size
                 if (hi == 1) {
                     this->valid = true;
                     this->a = peak.a;
+                    fundamentalIdx = i;
                 } else {
                     harmonicsSquareSum += peak.a * peak.a;
                 }
@@ -60,12 +64,19 @@ Measurement::Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size
     }
 
     if (!this->valid) { // if we did not find main f peak, we "fallback" to direct bin value
-        this->a = aspectr[(int) round(gen_f / resolution)];
+        fundamentalIdx = (int) round(gen_f / resolution);
+        this->a = aspectr[fundamentalIdx];
     }
+
+    float noiseAndHarmonicsSum = energy - aspectr[fundamentalIdx];
+    if (fundamentalIdx > 0)
+        noiseAndHarmonicsSum -= aspectr[fundamentalIdx - 1];
+    if (fundamentalIdx < fft_out_size - 1)
+        noiseAndHarmonicsSum -= aspectr[fundamentalIdx + 1];
+    this->thd_n = noiseAndHarmonicsSum / (energy - noiseAndHarmonicsSum);
 
     harmonicsSquareSum = sqrt(harmonicsSquareSum);
     signalSquareSum = sqrt(signalSquareSum);
-
     this->thd_f = harmonicsSquareSum / this->a;
     this->thd_r = harmonicsSquareSum / signalSquareSum;
 }
