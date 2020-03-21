@@ -24,9 +24,6 @@ DataAcquisition::DataAcquisition() {
     cout << "FFT frequency resolution: " << this->resolution << endl;
 
     this->fft = kiss_fftr_alloc(in_buffer_size, 0, nullptr, nullptr);
-
-    this->latency = this->getLatencyInSamples();
-    cout << "Measured latency: " << this->latency << endl;
 }
 
 Experiment DataAcquisition::measure(int steps) {
@@ -45,6 +42,9 @@ Experiment DataAcquisition::measure(int steps) {
     for (int i = 0; i < steps; i++) {
         f_list[i] = pow(10, min_f_log + d_gen * i);
     }
+
+    int latency = this->getLatencyInSamples();
+    cout << "Measured latency: " << latency << endl;
 
     int meas_idx = 0;
     int take_idx = 0;
@@ -128,9 +128,10 @@ Experiment DataAcquisition::measure(int steps) {
 
 int DataAcquisition::getLatencyInSamples() {
     int samplesCount = 0;
+
     reader.registerCallback([this, &samplesCount](snd_pcm_uframes_t size, const int16_t *values) {
         if (samplesCount == 0)
-            gen.setFrequency(3000);
+            gen.setFrequency(-1); // white noise
 
         unsigned long ampl = 0;
         for (int i = 0; i < size; i++) {

@@ -64,7 +64,8 @@ SineWaveGenerator::SineWaveGenerator() {
 void SineWaveGenerator::sendSamples() {
     int16_t vals[bufferSize * 2];
 
-    snd_pcm_writei(pcm_handle, vals, bufferSize);
+    default_random_engine gen(random_device{}());
+    normal_distribution<double> whiteNoise(-1,1);
 
     while (running) {
         if (f > 0) {
@@ -75,20 +76,26 @@ void SineWaveGenerator::sendSamples() {
                 vals[i + 1] = vals[i];
                 phi += delta;
             }
-        } else if (f == 0) { // if f = 0: send zeros
+
+            phi = std::fmod(phi, PI_2);
+        } else if (f == 0) { // if f = 0: send silence
             memset(vals, 0, sizeof vals);
+            phi = 0;
+        } else if (f < 0) { // if f < 0: send white noise
+            for (int i = 0; i < bufferSize * 2; i += 2) {
+                vals[i] = 32767 * whiteNoise(gen);
+                vals[i + 1] = vals[i];
+            }
+            phi = 0;
         }
 
         snd_pcm_sframes_t frames = snd_pcm_writei(pcm_handle, vals, bufferSize);
-
         snd_pcm_start(pcm_handle); // start sending data
 
         if (frames < 0) {
             cerr << "Failed to write, recovering" << endl;
             snd_pcm_recover(pcm_handle, frames, 0);
         }
-
-        phi = std::fmod(phi, PI_2);
     }
 }
 
@@ -102,6 +109,10 @@ void SineWaveGenerator::start() {
     snd_pcm_drop(pcm_handle);
     snd_pcm_prepare(pcm_handle);
 
+    int16_t vals[bufferSize * 2]; // zeros
+    snd_pcm_writei(pcm_handle, vals, bufferSize);
+    snd_pcm_start(pcm_handle); // start sending data
+
     thread sineThread(&SineWaveGenerator::sendSamples, this);
     sineThread.join();
 }
@@ -113,6 +124,6 @@ void SineWaveGenerator::stop() {
     snd_pcm_prepare(pcm_handle);
 }
 
-void SineWaveGenerator::setFrequency(float f) {
-    this->f = f;
+void SineWaveGenerator::setFrequency(float f_new) {
+    this->f = f_new;
 }

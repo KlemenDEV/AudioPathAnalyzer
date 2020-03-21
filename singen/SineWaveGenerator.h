@@ -20,9 +20,10 @@
 #include <cmath>
 #include <climits>
 #include <iostream>
-#include <alsa/asoundlib.h>
-
+#include <random>
 #include <thread>
+
+#include <alsa/asoundlib.h>
 
 #include "../conf.h"
 #include "../kissfft/kiss_fft.h"
