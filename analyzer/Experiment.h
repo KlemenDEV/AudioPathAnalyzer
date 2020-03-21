@@ -14,41 +14,28 @@
  * limitations under the License.
  */
 
-#ifndef AUDIOPATHANALYZER_DATAACQUISITION_H
-#define AUDIOPATHANALYZER_DATAACQUISITION_H
+#ifndef AUDIOPATHANALYZER_EXPERIMENT_H
+#define AUDIOPATHANALYZER_EXPERIMENT_H
 
-#include <vector>
-#include <numeric>
 
-#include <SineWaveGenerator.h>
-#include <InputSignalReader.h>
-#include <kiss_fftr.h>
+#include <utility>
 
 #include "Measurement.h"
-#include "Experiment.h"
 
-using namespace std;
-
-class DataAcquisition {
-
-private:
-    SineWaveGenerator gen;
-    InputSignalReader reader;
-
-    snd_pcm_uframes_t in_buffer_size;
-    size_t fft_out_size;
-
-    kiss_fftr_cfg fft;
-    float resolution;
-
-    int latency;
-
-    int getLatencyInSamples();
+class Experiment {
 
 public:
-    DataAcquisition();
+    vector<Measurement> takes;
+    float dc_offset;
+    int invalidCount;
+    int measurementTime;
 
-    Experiment measure(int steps);
+    Experiment(vector<Measurement> takes, float dcOffset, int invalidCount, int measurementTime) :
+            takes(std::move(takes)),
+            dc_offset(dcOffset),
+            invalidCount(invalidCount),
+            measurementTime(measurementTime) {}
+
 };
 
 

@@ -29,7 +29,7 @@ DataAcquisition::DataAcquisition() {
     cout << "Measured latency: " << this->latency << endl;
 }
 
-vector<Measurement> DataAcquisition::measure(int steps) {
+Experiment DataAcquisition::measure(int steps) {
     vector<Measurement> measurements;
 
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
@@ -49,8 +49,9 @@ vector<Measurement> DataAcquisition::measure(int steps) {
     int meas_idx = 0;
     int take_idx = 0;
     int takes = latency + 1;
-    
+
     int invalidcounter = 0;
+    float dc_offset_accumulator = 0;
 
     reader.registerCallback([&](
             snd_pcm_uframes_t size, const int16_t *values) {
@@ -62,18 +63,22 @@ vector<Measurement> DataAcquisition::measure(int steps) {
         // we do not measure "latency" steps
         if (take_idx > latency) {
             float dc_offset = 0;
+            float dc_offset_raw = 0;
 
             // de-interleave channels, apply Hann window and get dc_offset estimate
             for (int i = 0; i < size; i++) {
                 if (i % 2 == 0) {
+                    float a = values[i];
                     int idx = i / 2;
+                    dc_offset_raw += a;
                     float multiplier = 0.5f * (1 - cos(PI_2 * (float) idx / (float) in_buffer_size));
-                    fft_in[idx] = multiplier * (float) values[i];
+                    fft_in[idx] = multiplier * a;
                     dc_offset += fft_in[idx];
                 }
             }
 
             dc_offset /= (float) in_buffer_size;
+            dc_offset_accumulator += dc_offset_raw / (float) in_buffer_size;
 
             // remove dc offset
             for (int i = 0; i < in_buffer_size; i++) {
@@ -84,7 +89,7 @@ vector<Measurement> DataAcquisition::measure(int steps) {
 
             Measurement measurement(f_list[meas_idx], fft_out, fft_out_size, resolution);
             measurements.push_back(measurement);
-            
+
             if (!measurement.valid)
                 invalidcounter++;
 
@@ -95,7 +100,7 @@ vector<Measurement> DataAcquisition::measure(int steps) {
             meas_idx++;
             take_idx = 0; // reset takes counter, next f
 
-            // we need to wait "latency" more steps to capture all measurements
+            // we need to wait "latency" more steps to capture all takes
             if (meas_idx >= steps) {
                 reader.stop();
                 gen.stop();
@@ -106,12 +111,19 @@ vector<Measurement> DataAcquisition::measure(int steps) {
     reader.start();
     gen.start();
 
-    cout << "Measurement complete, missed peaks: " << invalidcounter << endl;
-    
-    chrono::steady_clock::time_point end = chrono::steady_clock::now();
-    cout << "Measurement time = " << chrono::duration_cast<chrono::seconds>(end - begin).count() << "[s]" << endl;
+    float dc_offset_avg = dc_offset_accumulator / measurements.size();
 
-    return measurements;
+    cout << "Measurement complete, missed peaks: "
+         << invalidcounter << ", dc offset: " << dc_offset_avg << endl;
+
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+
+    int seconds = chrono::duration_cast<chrono::seconds>(end - begin).count();
+
+    cout << "Measurement time = " << seconds << "[s]" << endl;
+    Experiment experiment(measurements, dc_offset_avg, invalidcounter, seconds);
+
+    return experiment;
 }
 
 int DataAcquisition::getLatencyInSamples() {

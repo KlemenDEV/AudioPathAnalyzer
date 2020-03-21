@@ -6,7 +6,14 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(ALSA)
 find_package(Threads)
 
-include_directories(${ALSA_INCLUDE_DIRS} kissfft/tools kissfft signalreader singen)
+include_directories(
+        signalreader
+        singen
+        analyzer
+        kissfft/tools
+        kissfft
+        ${ALSA_INCLUDE_DIRS}
+)
 
 add_executable(
         AudioPathAnalyzer
@@ -22,6 +29,14 @@ add_executable(
         signalreader/InputSignalReader.h
         analyzer/DataAcquisition.cpp
         analyzer/DataAcquisition.h
-        analyzer/Measurement.cpp analyzer/Measurement.h analyzer/Smoothing.tcc)
+        analyzer/Measurement.cpp
+        analyzer/Measurement.h
+        analyzer/Smoothing.tcc
+        analyzer/Experiment.h
+)
 
-target_link_libraries(AudioPathAnalyzer ${ALSA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(
+        AudioPathAnalyzer
+        ${ALSA_LIBRARIES}
+        ${CMAKE_THREAD_LIBS_INIT}
+)

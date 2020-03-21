@@ -23,32 +23,32 @@ int main() {
     cout << "Press [Enter] to start calibration";
     getchar();
 
-    vector<Measurement> calibrations = dataAcquisition.measure(MEAS_STEPS);
+    Experiment calibration = dataAcquisition.measure(MEAS_STEPS);
 
     cout << "Press [Enter] to start audio path measurement";
     getchar();
 
-    vector<Measurement> measurements = dataAcquisition.measure(MEAS_STEPS);
+    Experiment measurement = dataAcquisition.measure(MEAS_STEPS);
 
-    // obtain maximal amplitude and remove calibration amount from measurements
+    // obtain maximal amplitude
     float max_a = 0;
-    for (auto & calibration : calibrations) {
-        if (max_a < calibration.a)
-            max_a = calibration.a;
+    for (auto &c : calibration.takes) {
+        if (max_a < c.a)
+            max_a = c.a;
     }
 
-    vector<float> amplitudes(calibrations.size());
-    vector<float> frequencies(calibrations.size());
+    vector<float> amplitudes(calibration.takes.size());
+    vector<float> frequencies(calibration.takes.size());
 
-    for (int i = 0; i < calibrations.size(); ++i) {
-        if (calibrations[i].a != 0)
-            calibrations[i].a = 20 * log10(calibrations[i].a / max_a);
+    for (int i = 0; i < amplitudes.size(); ++i) {
+        if (calibration.takes[i].a != 0)
+            calibration.takes[i].a = 20 * log10(calibration.takes[i].a / max_a);
 
-        if (measurements[i].a != 0)
-            measurements[i].a = 20 * log10(measurements[i].a / max_a);
+        if (measurement.takes[i].a != 0)
+            measurement.takes[i].a = 20 * log10(measurement.takes[i].a / max_a);
 
-        amplitudes[i] = measurements[i].a - calibrations[i].a;
-        frequencies[i] = measurements[i].f;
+        amplitudes[i] = measurement.takes[i].a - calibration.takes[i].a;
+        frequencies[i] = measurement.takes[i].f;
     }
 
     amplitudes = Smoothing::smooth(amplitudes);
