@@ -27,4 +27,6 @@
 
 #define MEAS_STEPS 200
 
+#define MAX_ADC_V 1.767767
+
 #endif

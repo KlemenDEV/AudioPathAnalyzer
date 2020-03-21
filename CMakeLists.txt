@@ -33,6 +33,9 @@ add_executable(
         analyzer/Measurement.h
         analyzer/Smoothing.tcc
         analyzer/Experiment.h
+        analyzer/Analyzer.cpp
+        analyzer/Analyzer.h
+        analyzer/AnalysisResult.h
 )
 
 target_link_libraries(

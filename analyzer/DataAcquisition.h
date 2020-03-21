@@ -41,6 +41,8 @@ private:
     kiss_fftr_cfg fft;
     float resolution;
 
+    int latency;
+
     int getLatencyInSamples();
 
 public:

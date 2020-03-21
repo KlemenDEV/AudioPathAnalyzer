@@ -112,6 +112,8 @@ void SineWaveGenerator::start() {
     int16_t vals[bufferSize * 2]; // zeros
     snd_pcm_writei(pcm_handle, vals, bufferSize);
     snd_pcm_start(pcm_handle); // start sending data
+    snd_pcm_writei(pcm_handle, vals, bufferSize);
+    snd_pcm_start(pcm_handle); // start sending data
 
     thread sineThread(&SineWaveGenerator::sendSamples, this);
     sineThread.join();

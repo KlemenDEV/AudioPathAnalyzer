@@ -24,6 +24,9 @@ DataAcquisition::DataAcquisition() {
     cout << "FFT frequency resolution: " << this->resolution << endl;
 
     this->fft = kiss_fftr_alloc(in_buffer_size, 0, nullptr, nullptr);
+
+    this->latency = this->getLatencyInSamples();
+    cout << "Measured latency: " << this->latency << endl;
 }
 
 Experiment DataAcquisition::measure(int steps) {
@@ -42,9 +45,6 @@ Experiment DataAcquisition::measure(int steps) {
     for (int i = 0; i < steps; i++) {
         f_list[i] = pow(10, min_f_log + d_gen * i);
     }
-
-    int latency = this->getLatencyInSamples();
-    cout << "Measured latency: " << latency << endl;
 
     int meas_idx = 0;
     int take_idx = 0;
@@ -113,6 +113,8 @@ Experiment DataAcquisition::measure(int steps) {
 
     float dc_offset_avg = dc_offset_accumulator / measurements.size();
 
+    dc_offset_avg = (dc_offset_avg / 32767.f) * (float) MAX_ADC_V;
+
     cout << "Measurement complete, missed peaks: "
          << invalidcounter << ", dc offset: " << dc_offset_avg << endl;
 
@@ -141,7 +143,7 @@ int DataAcquisition::getLatencyInSamples() {
 
         samplesCount++;
 
-        if (ampl > 1000) {
+        if (ampl > 5000) {
             reader.stop();
             gen.stop();
         }

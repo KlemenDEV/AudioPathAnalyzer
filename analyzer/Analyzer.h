@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-#include <Analyzer.h>
+#ifndef AUDIOPATHANALYZER_ANALYZER_H
+#define AUDIOPATHANALYZER_ANALYZER_H
 
-int main() {
-    DataAcquisition dataAcquisition;
+#include "DataAcquisition.h"
+#include "Smoothing.tcc"
+#include "AnalysisResult.h"
 
-    cout << "Press [Enter] to start calibration";
-    getchar();
+class Analyzer {
 
-    Experiment calibration = dataAcquisition.measure(MEAS_STEPS);
+public:
+    static AnalysisResult analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration);
 
-    cout << "Press [Enter] to start audio path analyzer";
-    getchar();
+};
 
-    Analyzer::analyzePath(dataAcquisition, calibration);
-}
+
+#endif
