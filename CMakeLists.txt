@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(AudioPathAnalyzer)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 find_package(ALSA)
 find_package(Threads)
@@ -12,6 +12,8 @@ include_directories(
         analyzer
         kissfft/tools
         kissfft
+        popl/include
+        csvparser
         ${ALSA_INCLUDE_DIRS}
 )
 
@@ -40,6 +42,7 @@ add_executable(
 
 target_link_libraries(
         AudioPathAnalyzer
+        stdc++fs
         ${ALSA_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
 )

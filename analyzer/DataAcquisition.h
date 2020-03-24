@@ -48,7 +48,7 @@ private:
 public:
     DataAcquisition();
 
-    Experiment measure(int steps);
+    Experiment measure(int lowf, int highf, int steps);
 };
 
 

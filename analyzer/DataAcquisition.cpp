@@ -29,7 +29,7 @@ DataAcquisition::DataAcquisition() {
     cout << "Measured latency: " << this->latency << endl;
 }
 
-Experiment DataAcquisition::measure(int steps) {
+Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
     vector<Measurement> measurements;
 
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
@@ -39,8 +39,8 @@ Experiment DataAcquisition::measure(int steps) {
 
     float f_list[steps];
 
-    double min_f_log = log10(MEAS_F_LOW);
-    double max_f_log = log10(MEAS_F_HIGH);
+    double min_f_log = log10(lowf);
+    double max_f_log = log10(highf);
     double d_gen = (max_f_log - min_f_log) / (double) (steps - 1);
     for (int i = 0; i < steps; i++) {
         f_list[i] = pow(10, min_f_log + d_gen * i);

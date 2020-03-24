@@ -1,3 +1,9 @@
 [submodule "kissfft"]
 	path = kissfft
 	url = https://github.com/mborgerding/kissfft
+[submodule "popl"]
+	path = popl
+	url = https://github.com/badaix/popl
+[submodule "csvparser"]
+	path = csvparser
+	url = https://github.com/ben-strasser/fast-cpp-csv-parser

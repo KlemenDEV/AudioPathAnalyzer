@@ -43,6 +43,8 @@ public:
 
     Measurement(float gen_f, kiss_fft_cpx *fft_out, size_t fft_out_size, float resolution);
 
+    Measurement() = default;
+
 };
 
 

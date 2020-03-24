@@ -16,8 +16,9 @@
 
 #include "Analyzer.h"
 
-AnalysisResult Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration) {
-    Experiment measurement = dataAcquisition.measure(MEAS_STEPS);
+AnalysisResult Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration,
+                                     int lowf, int highf, int steps) {
+    Experiment measurement = dataAcquisition.measure(lowf, highf, steps);
 
     cout << "Analysis results below" << endl;
     cout << "======================" << endl << endl;

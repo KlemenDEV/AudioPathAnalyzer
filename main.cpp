@@ -14,18 +14,68 @@
  * limitations under the License.
  */
 
-#include <Analyzer.h>
+#include "popl.hpp"
+#include "Analyzer.h"
 
-int main() {
+#include <filesystem>
+
+using namespace std;
+using namespace popl;
+
+int main(int argc, char **argv) {
+    OptionParser op("Allowed options");
+
+    auto help_option = op.add<Switch>("h", "help", "Prints usage");
+
+    auto calibration_option = op.add<Value<string>>("f", "calibration",
+                                                    "File containing calibration data or where to store it in");
+    auto docalibration_option = op.add<Switch>("c", "docalibration",
+                                               "Run calibration and store it in -calibration <file>");
+
+    auto f_low = op.add<Value<int>>("", "frequency_low", "Sweep start frequency", MEAS_F_LOW);
+    auto f_high = op.add<Value<int>>("", "frequency_high", "Sweep end frequency", MEAS_F_HIGH);
+    auto steps = op.add<Value<int>>("s", "steps", "Sweep frequency steps", MEAS_STEPS);
+
+    op.parse(argc, argv);
+
+    if (help_option->is_set()) {
+        cout << op.help(Attribute::expert) << endl;
+        return 0;
+    }
+
+    Experiment calibration;
     DataAcquisition dataAcquisition;
 
-    cout << "Press [Enter] to start calibration";
-    getchar();
+    if (docalibration_option->is_set()) {
+        if (calibration_option->is_set()) {
+            cout << "Calibration will be performed" << endl;
+            calibration = dataAcquisition.measure(f_low->value(), f_high->value(), steps->value());
+            Experiment::write(calibration, calibration_option->value());
+        } else {
+            cout << "Specify calibration output file" << endl << endl;
+            cout << op.help(Attribute::expert) << endl;
+        }
+        return 0;
+    }
 
-    Experiment calibration = dataAcquisition.measure(MEAS_STEPS);
+    std::string calibrationFileName;
 
-    cout << "Press [Enter] to start audio path analyzer";
-    getchar();
+    if (calibration_option->is_set()) {
+        calibrationFileName = calibration_option->value();
+    }
 
-    Analyzer::analyzePath(dataAcquisition, calibration);
+    if (!calibrationFileName.empty() && filesystem::exists(calibrationFileName)) {
+        calibration = Experiment::read(calibrationFileName);
+    } else {
+        cout << "Press [Enter] to start calibration";
+        getchar();
+
+        calibration = dataAcquisition.measure(f_low->value(), f_high->value(), steps->value());
+
+        cout << "Press [Enter] to start audio path analyzer";
+        getchar();
+    }
+
+    Analyzer::analyzePath(dataAcquisition, calibration, f_low->value(),
+                          f_high->value(), steps->value());
 }
