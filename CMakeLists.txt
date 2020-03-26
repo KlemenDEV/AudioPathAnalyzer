@@ -37,7 +37,6 @@ add_executable(
         analyzer/Experiment.h
         analyzer/Analyzer.cpp
         analyzer/Analyzer.h
-        analyzer/AnalysisResult.h
 )
 
 target_link_libraries(

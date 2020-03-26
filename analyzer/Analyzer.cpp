@@ -16,19 +16,13 @@
 
 #include "Analyzer.h"
 
-AnalysisResult Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration,
-                                     int lowf, int highf, int steps) {
+Experiment Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration,
+                                 int lowf, int highf, int steps) {
     Experiment measurement = dataAcquisition.measure(lowf, highf, steps);
 
-    cout << "Analysis results below" << endl;
-    cout << "======================" << endl << endl;
+    cout << "Analysis complete" << endl;
 
     float dc_offset = measurement.dc_offset - calibration.dc_offset;
-    vector<float> frequencies(calibration.takes.size());
-    vector<float> amplitudes(calibration.takes.size());
-    vector<float> thd_r(calibration.takes.size());
-    vector<float> thd_n(calibration.takes.size());
-    vector<float> thd_f(calibration.takes.size());
 
     cout << "DC offset: " << dc_offset << " V" << endl;
 
@@ -39,27 +33,21 @@ AnalysisResult Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experimen
             max_a = c.a;
     }
 
-    for (int i = 0; i < amplitudes.size(); ++i) {
+    for (int i = 0; i < measurement.takes.size(); ++i) {
         if (calibration.takes[i].a != 0)
             calibration.takes[i].a = 20 * log10(calibration.takes[i].a / max_a);
         if (measurement.takes[i].a != 0)
             measurement.takes[i].a = 20 * log10(measurement.takes[i].a / max_a);
-        amplitudes[i] = measurement.takes[i].a - calibration.takes[i].a;
+        measurement.takes[i].a = measurement.takes[i].a - calibration.takes[i].a;
 
-        thd_r[i] = measurement.takes[i].thd_r - calibration.takes[i].thd_r;
-        thd_n[i] = measurement.takes[i].thd_n - calibration.takes[i].thd_n;
-        thd_f[i] = measurement.takes[i].thd_f - calibration.takes[i].thd_f;
-
-        frequencies[i] = measurement.takes[i].f;
+        measurement.takes[i].thd_r = measurement.takes[i].thd_r - calibration.takes[i].thd_r;
+        measurement.takes[i].thd_n = measurement.takes[i].thd_n - calibration.takes[i].thd_n;
+        measurement.takes[i].thd_f = measurement.takes[i].thd_f - calibration.takes[i].thd_f;
     }
 
-    amplitudes = Smoothing::smooth(amplitudes);
+    measurement.takes = Smoothing::smooth(measurement.takes, &Measurement::a);
 
-    cout << "------ Amplitude data" << endl;
-    for (int i = 0; i < amplitudes.size(); ++i) {
-        cout << frequencies[i] << ", " << amplitudes[i] << endl;
-    }
+    measurement.dc_offset = dc_offset;
 
-    AnalysisResult result(dc_offset, frequencies, amplitudes, thd_r, thd_n, thd_f);
-    return result;
+    return measurement;
 }

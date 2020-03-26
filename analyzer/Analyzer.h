@@ -19,12 +19,11 @@
 
 #include "DataAcquisition.h"
 #include "Smoothing.tcc"
-#include "AnalysisResult.h"
 
 class Analyzer {
 
 public:
-    static AnalysisResult analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration, int lowf, int highf, int steps);
+    static Experiment analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration, int lowf, int highf, int steps);
 
 };
 

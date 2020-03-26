@@ -25,21 +25,25 @@ using namespace std;
 class Smoothing {
 
 public:
-    template<typename T>
-    static vector<T> smooth(vector<T> &data) {
-        vector<T> retval(data.size());
+    template<typename T, typename field>
+    static vector<T> smooth(vector<T> &data, field T::*fp) {
+        vector<T> retval = data;
 
         for (int i = 0; i < data.size(); ++i) {
             if (i == 0) {
-                retval[i] = (data[i] * 3 + data[i + 1] * 2 + data[i + 2]) / 6;
+                retval[i].*fp = (data[i].*fp * 3 + data[i + 1].*fp * 2 + data[i + 2].*fp) / 6;
             } else if (i == 1) {
-                retval[i] = (data[i - 1] * 2 + data[i] * 3 + data[i + 1] * 2 + data[i + 2]) / 8;
+                retval[i].*fp =
+                        (data[i - 1].*fp * 2 + data[i].*fp * 3 + data[i + 1].*fp * 2 + data[i + 2].*fp) / 8;
             } else if (i == data.size() - 2) {
-                retval[i] = (data[i - 2] + data[i - 1] * 2 + data[i] * 3 + data[i + 1] * 2) / 8;
+                retval[i].*fp =
+                        (data[i - 2].*fp + data[i - 1].*fp * 2 + data[i].*fp * 3 + data[i + 1].*fp * 2) / 8;
             } else if (i == data.size() - 1) {
-                retval[i] = (data[i - 2] + data[i - 1] * 2 + data[i] * 3) / 6;
+                retval[i].*fp = (data[i - 2].*fp + data[i - 1].*fp * 2 + data[i].*fp * 3) / 6;
             } else {
-                retval[i] = (data[i - 2] + data[i - 1] * 2 + data[i] * 3 + data[i + 1] * 2 + data[i + 2]) / 9;
+                retval[i].*fp =
+                        (data[i - 2].*fp + data[i - 1].*fp * 2 + data[i].*fp * 3 + data[i + 1].*fp * 2 +
+                         data[i + 2].*fp) / 9;
             }
         }
 

@@ -93,7 +93,9 @@ Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
             if (!measurement.valid)
                 invalidcounter++;
 
-            cout << "Measured at f = " << f_list[meas_idx] << endl;
+            cout << "MEAS: f=" << f_list[meas_idx] << ", a=" << measurement.a << ", p="
+                 << ((float) (meas_idx + 1) / (float) steps)
+                 << endl;
         }
 
         if (take_idx >= takes) {

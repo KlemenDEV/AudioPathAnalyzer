@@ -66,23 +66,19 @@ public:
     }
 
     static void write(Experiment &e, const std::string &fileName) {
-        ofstream experimentFile(fileName);
+        ofstream experimentFile(fileName, fstream::trunc);
         if (experimentFile.is_open()) {
             write(e, experimentFile);
-            experimentFile << e.takes.size() << "," << e.invalidCount << "," << e.dc_offset << "," << 1 << endl;
-            for (Measurement &m : e.takes) {
-                experimentFile << m.f << "," << m.a << "," << m.thd_f << "," << m.valid << endl;
-            }
             experimentFile.close();
         } else {
             cerr << "Failed to write experiment to the file!" << endl;
         }
     }
 
-    static void write(Experiment &e, std::ostream &experimentFile = std::cout) {
-        experimentFile << e.takes.size() << "," << e.invalidCount << "," << e.dc_offset << endl;
+    static void write(Experiment &e, std::ostream &writestream = std::cout) {
+        writestream << e.takes.size() << "," << e.invalidCount << "," << e.dc_offset << ",1" << endl;
         for (Measurement &m : e.takes) {
-            experimentFile << m.f << "," << m.a << "," << m.thd_f << "," << m.valid << endl;
+            writestream << m.f << "," << m.a << "," << m.thd_f << "," << m.valid << endl;
         }
     }
 

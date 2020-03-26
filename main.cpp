@@ -76,6 +76,9 @@ int main(int argc, char **argv) {
         getchar();
     }
 
-    Analyzer::analyzePath(dataAcquisition, calibration, f_low->value(),
-                          f_high->value(), steps->value());
+    Experiment experiment = Analyzer::analyzePath(dataAcquisition, calibration, f_low->value(),
+                                                  f_high->value(), steps->value());
+
+    cout << "#CSV" << endl;
+    Experiment::write(experiment, cout);
 }
