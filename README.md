@@ -9,7 +9,17 @@ It is written for Linux ALSA audio subsystem, so ALSA-dev is required for buildi
 
 `apt install libasound2-dev`
 
-This project is still very work in progress.
+# Usage
+
+```
+Allowed options:
+  -h, --help                     Prints usage
+  -f, --calibration arg          File containing calibration data or where to store it in
+  -c, --docalibration            Run calibration and store it in -calibration <file>
+  --frequency_low arg (=20)      Sweep start frequency
+  --frequency_high arg (=20000)  Sweep end frequency
+  -s, --steps arg (=200)         Sweep frequency steps
+```
 
 # Concept
 
