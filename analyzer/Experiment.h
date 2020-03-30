@@ -31,11 +31,19 @@ public:
     int invalidCount = 0;
     int measurementTime = 0;
 
-    Experiment(vector<Measurement> takes, float dcOffset, int invalidCount, int measurementTime) :
+    int steps;
+    int min_f;
+    int max_f;
+
+    Experiment(vector<Measurement> takes, float dcOffset, int invalidCount, int measurementTime, int steps, int min_f,
+               int max_f) :
             takes(std::move(takes)),
             dc_offset(dcOffset),
             invalidCount(invalidCount),
-            measurementTime(measurementTime) {}
+            measurementTime(measurementTime),
+            steps(steps),
+            min_f(min_f),
+            max_f(max_f) {}
 
     Experiment() = default;
 
@@ -61,6 +69,10 @@ public:
                 e.takes.push_back(measurement);
             }
         }
+
+        e.steps = e.takes.size();
+        e.min_f = (int) e.takes[0].f;
+        e.max_f = (int) e.takes[e.takes.size() - 1].f;
 
         return e;
     }

@@ -125,7 +125,7 @@ Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
     int seconds = chrono::duration_cast<chrono::seconds>(end - begin).count();
 
     cout << "Measurement time = " << seconds << "[s]" << endl;
-    Experiment experiment(measurements, dc_offset_avg, invalidcounter, seconds);
+    Experiment experiment(measurements, dc_offset_avg, invalidcounter, seconds, steps, lowf, highf);
 
     return experiment;
 }

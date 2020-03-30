@@ -19,6 +19,11 @@
 
 #include <filesystem>
 
+#define RETVAL_PARAMETER_MISMATCH -1
+#define RETVAL_FILE_NOT_FOUND -2
+
+#define IS_CALIBRATION_INVALID (calibration.min_f != f_low->value() || calibration.max_f != f_high->value() || calibration.steps != steps->value())
+
 using namespace std;
 using namespace popl;
 
@@ -31,6 +36,8 @@ int main(int argc, char **argv) {
                                                     "File containing calibration data or where to store it in");
     auto docalibration_option = op.add<Switch>("c", "docalibration",
                                                "Run calibration and store it in -calibration <file>");
+    auto verify_calibration_option = op.add<Switch>("v", "verifycalibration",
+                                                    "Only verify if calibration file is valid for the given parameters");
 
     auto f_low = op.add<Value<int>>("", "frequency_low", "Sweep start frequency", MEAS_F_LOW);
     auto f_high = op.add<Value<int>>("", "frequency_high", "Sweep end frequency", MEAS_F_HIGH);
@@ -64,6 +71,21 @@ int main(int argc, char **argv) {
         calibrationFileName = calibration_option->value();
     }
 
+    if (verify_calibration_option->is_set()) {
+        if (!calibrationFileName.empty() && filesystem::exists(calibrationFileName)) {
+            calibration = Experiment::read(calibrationFileName);
+            if (IS_CALIBRATION_INVALID) {
+                cout << "VERIFY: parameter_mismatch" << endl;
+                return RETVAL_PARAMETER_MISMATCH;
+            }
+            cout << "VERIFY: valid" << endl;
+            return 0;
+        } else {
+            cout << "VERIFY: file_not_found" << endl;
+            return RETVAL_FILE_NOT_FOUND;
+        }
+    }
+
     if (!calibrationFileName.empty() && filesystem::exists(calibrationFileName)) {
         calibration = Experiment::read(calibrationFileName);
     } else {
@@ -74,6 +96,11 @@ int main(int argc, char **argv) {
 
         cout << "Press [Enter] to start audio path analyzer";
         getchar();
+    }
+
+    if (IS_CALIBRATION_INVALID) {
+        cerr << "Calibration data not compatible with specified measurement parameters!" << endl;
+        return RETVAL_PARAMETER_MISMATCH;
     }
 
     Experiment experiment = Analyzer::analyzePath(dataAcquisition, calibration, f_low->value(),
