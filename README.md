@@ -16,6 +16,7 @@ Allowed options:
   -h, --help                     Prints usage
   -f, --calibration arg          File containing calibration data or where to store it in
   -c, --docalibration            Run calibration and store it in -calibration <file>
+  -v, --verifycalibration        Only verify if calibration file is valid for the given parameters
   --frequency_low arg (=20)      Sweep start frequency
   --frequency_high arg (=20000)  Sweep end frequency
   -s, --steps arg (=200)         Sweep frequency steps
