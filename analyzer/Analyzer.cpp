@@ -36,13 +36,11 @@ Experiment Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &c
     for (int i = 0; i < measurement.takes.size(); ++i) {
         if (calibration.takes[i].a != 0)
             calibration.takes[i].a = 20 * log10(calibration.takes[i].a / max_a);
+        
         if (measurement.takes[i].a != 0)
             measurement.takes[i].a = 20 * log10(measurement.takes[i].a / max_a);
-        measurement.takes[i].a = measurement.takes[i].a - calibration.takes[i].a;
 
-        measurement.takes[i].thd_r = measurement.takes[i].thd_r - calibration.takes[i].thd_r;
-        measurement.takes[i].thd_n = measurement.takes[i].thd_n - calibration.takes[i].thd_n;
-        measurement.takes[i].thd_f = measurement.takes[i].thd_f - calibration.takes[i].thd_f;
+        measurement.takes[i].a = measurement.takes[i].a - calibration.takes[i].a;
     }
 
     measurement.takes = Smoothing::smooth(measurement.takes, &Measurement::a);
