@@ -36,7 +36,7 @@ Experiment Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &c
     for (int i = 0; i < measurement.takes.size(); ++i) {
         if (calibration.takes[i].a != 0)
             calibration.takes[i].a = 20 * log10(calibration.takes[i].a / max_a);
-        
+
         if (measurement.takes[i].a != 0)
             measurement.takes[i].a = 20 * log10(measurement.takes[i].a / max_a);
 
