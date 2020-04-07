@@ -25,8 +25,8 @@ using namespace std;
 class Smoothing {
 
 public:
-    template<typename T, typename field>
-    static vector<T> smooth(vector<T> &data, field T::*fp) {
+    template<typename T>
+    static vector<T> smooth(vector<T> &data, float T::*fp) {
         vector<T> retval = data;
 
         for (int i = 0; i < data.size(); ++i) {
