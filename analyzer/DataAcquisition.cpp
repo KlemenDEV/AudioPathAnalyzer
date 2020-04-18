@@ -113,7 +113,7 @@ Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
     reader.start();
     gen.start();
 
-    float dc_offset_avg = dc_offset_accumulator / measurements.size();
+    float dc_offset_avg = dc_offset_accumulator / (float) measurements.size();
 
     dc_offset_avg = dc_offset_avg * (float) MAX_ADC_V;
 
