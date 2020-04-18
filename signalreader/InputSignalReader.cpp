@@ -34,41 +34,41 @@ InputSignalReader::InputSignalReader() {
     snd_pcm_hw_params_any(pcm_handle, hwparams);
 
     if (snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
-        cerr << "Failed to set access" << endl;
-    if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16) < 0)
-        cerr << "Failed to set format" << endl;
+        cerr << "[Input signal reader] Failed to set access" << endl;
+    if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SIGNAL_BITS) < 0)
+        cerr << "[Input signal reader] Failed to set format" << endl;
     if (snd_pcm_hw_params_set_channels(pcm_handle, hwparams, 2) < 0)
-        cerr << "Failed to set channels" << endl;
+        cerr << "[Input signal reader] Failed to set channels" << endl;
 
     if (snd_pcm_hw_params_set_rate(pcm_handle, hwparams, SAMPLE_RATE, (int) 0) < 0)
-        cerr << "Failed to set rate" << endl;
+        cerr << "[Input signal reader] Failed to set rate" << endl;
     if (snd_pcm_hw_params_set_periods(pcm_handle, hwparams, 4, 0) < 0)
-        cerr << "Failed to set periods" << endl;
+        cerr << "[Input signal reader] Failed to set periods" << endl;
 
-    snd_pcm_uframes_t period_size = 1024;
+    snd_pcm_uframes_t period_size = 3000;
     if (snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &period_size, nullptr) < 0)
-        cerr << "Failed to set period size" << endl;
+        cerr << "[Input signal reader] Failed to set period size" << endl;
 
     bufferSize = period_size * (4 / 2);
 
-    cout << "Suggested in buffer size: " << bufferSize << endl;
+    cout << "[Input signal reader] Suggested in buffer size: " << bufferSize << endl;
 
     if (snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &bufferSize) < 0)
-        cerr << "Failed to set buffer size" << endl;
+        cerr << "[Input signal reader] Failed to set buffer size" << endl;
 
-    cout << "Actual in buffer size: " << bufferSize << endl;
+    cout << "[Input signal reader] Actual in buffer size: " << bufferSize << endl;
 
     snd_pcm_hw_params(pcm_handle, hwparams);
 
     snd_pcm_prepare(pcm_handle);
 }
 
-void InputSignalReader::registerCallback(function<void(snd_pcm_uframes_t, int16_t*)> callbackparam) {
+void InputSignalReader::registerCallback(function<void(snd_pcm_uframes_t, int32_t*)> callbackparam) {
     this->callback = std::move(callbackparam);
 }
 
 void InputSignalReader::readSamples() {
-    int16_t vals[bufferSize * 2]; // two channels
+    int32_t vals[bufferSize * 2]; // two channels
 
     while(running) {
         snd_pcm_sframes_t frames = snd_pcm_readi(pcm_handle, vals, bufferSize);

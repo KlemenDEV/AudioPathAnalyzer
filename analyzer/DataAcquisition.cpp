@@ -54,7 +54,7 @@ Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
     float dc_offset_accumulator = 0;
 
     reader.registerCallback([&](
-            snd_pcm_uframes_t size, const int16_t *values) {
+            snd_pcm_uframes_t size, const int32_t *values) {
         if (meas_idx < steps && take_idx == 0)
             gen.setFrequency(f_list[meas_idx]);
 
@@ -68,7 +68,7 @@ Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
             // de-interleave channels, apply Hann window and get dc_offset estimate
             for (int i = 0; i < size; i++) {
                 if (i % 2 == 0) {
-                    float a = values[i];
+                    float a = values[i] / (float) SIGNAL_HALF_RANGE;
                     int idx = i / 2;
                     dc_offset_raw += a;
                     float multiplier = 0.5f * (1 - cos(PI_2 * (float) idx / (float) in_buffer_size));
@@ -115,7 +115,7 @@ Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
 
     float dc_offset_avg = dc_offset_accumulator / measurements.size();
 
-    dc_offset_avg = (dc_offset_avg / 32767.f) * (float) MAX_ADC_V;
+    dc_offset_avg = dc_offset_avg * (float) MAX_ADC_V;
 
     cout << "Measurement complete, missed peaks: "
          << invalidcounter << ", dc offset: " << dc_offset_avg << endl;
@@ -133,19 +133,19 @@ Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
 int DataAcquisition::getLatencyInSamples() {
     int samplesCount = 0;
 
-    reader.registerCallback([this, &samplesCount](snd_pcm_uframes_t size, const int16_t *values) {
+    reader.registerCallback([this, &samplesCount](snd_pcm_uframes_t size, const int32_t *values) {
         if (samplesCount == 0)
             gen.setFrequency(-1); // white noise
 
-        unsigned long ampl = 0;
+        float ampl = 0;
         for (int i = 0; i < size; i++) {
             if (i % 2 == 0)
-                ampl += abs(values[i]) / size;
+                ampl += (float) abs(values[i]) / (float) (size * SIGNAL_HALF_RANGE);
         }
 
         samplesCount++;
 
-        if (ampl > 5000) {
+        if (ampl > 25 && samplesCount > 1) {
             reader.stop();
             gen.stop();
         }
@@ -154,5 +154,5 @@ int DataAcquisition::getLatencyInSamples() {
     reader.start();
     gen.start();
 
-    return samplesCount;
+    return samplesCount - 1;
 }

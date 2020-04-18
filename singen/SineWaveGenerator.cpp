@@ -34,35 +34,35 @@ SineWaveGenerator::SineWaveGenerator() {
     snd_pcm_hw_params_any(pcm_handle, hwparams);
 
     if (snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
-        cerr << "Failed to set access" << endl;
-    if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16) < 0)
-        cerr << "Failed to set format" << endl;
+        cerr << "[Sine wave generator] Failed to set access" << endl;
+    if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SIGNAL_BITS) < 0)
+        cerr << "[Sine wave generator] Failed to set format" << endl;
     if (snd_pcm_hw_params_set_channels(pcm_handle, hwparams, 2) < 0)
-        cerr << "Failed to set channels" << endl;
+        cerr << "[Sine wave generator] Failed to set channels" << endl;
 
     if (snd_pcm_hw_params_set_rate(pcm_handle, hwparams, SAMPLE_RATE, (int) 0) < 0)
-        cerr << "Failed to set rate" << endl;
+        cerr << "[Sine wave generator] Failed to set rate" << endl;
     if (snd_pcm_hw_params_set_periods(pcm_handle, hwparams, 4, 0) < 0)
-        cerr << "Failed to set periods" << endl;
+        cerr << "[Sine wave generator] Failed to set periods" << endl;
 
-    snd_pcm_uframes_t period_size = 256;
+    snd_pcm_uframes_t period_size = 1024;
     if (snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &period_size, nullptr) < 0)
-        cerr << "Failed to set period size" << endl;
+        cerr << "[Sine wave generator] Failed to set period size" << endl;
 
     bufferSize = period_size * (4 / 2);
 
-    cout << "Suggested out buffer size: " << bufferSize << endl;
+    cout << "[Sine wave generator] Suggested out buffer size: " << bufferSize << endl;
 
     if (snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &bufferSize) < 0)
-        cerr << "Failed to set buffer size" << endl;
+        cerr << "[Sine wave generator] Failed to set buffer size" << endl;
 
-    cout << "Actual out buffer size: " << bufferSize << endl;
+    cout << "[Sine wave generator] Actual out buffer size: " << bufferSize << endl;
 
     snd_pcm_hw_params(pcm_handle, hwparams);
 }
 
 void SineWaveGenerator::sendSamples() {
-    int16_t vals[bufferSize * 2];
+    int32_t vals[bufferSize * 2];
 
     default_random_engine gen(random_device{}());
     normal_distribution<double> whiteNoise(-1,1);
@@ -72,7 +72,7 @@ void SineWaveGenerator::sendSamples() {
             float delta = (PI_2 * f) / (float) SAMPLE_RATE;
 
             for (int i = 0; i < bufferSize * 2; i += 2) {
-                vals[i] = 32767 * cos(phi);
+                vals[i] = SIGNAL_HALF_RANGE * cos(phi);
                 vals[i + 1] = vals[i];
                 phi += delta;
             }
@@ -83,7 +83,7 @@ void SineWaveGenerator::sendSamples() {
             phi = 0;
         } else if (f < 0) { // if f < 0: send white noise
             for (int i = 0; i < bufferSize * 2; i += 2) {
-                vals[i] = 32767 * whiteNoise(gen);
+                vals[i] = SIGNAL_HALF_RANGE * whiteNoise(gen);
                 vals[i + 1] = vals[i];
             }
             phi = 0;
@@ -109,7 +109,7 @@ void SineWaveGenerator::start() {
     snd_pcm_drop(pcm_handle);
     snd_pcm_prepare(pcm_handle);
 
-    int16_t vals[bufferSize * 2]; // zeros
+    int32_t vals[bufferSize * 2]; // zeros
     snd_pcm_writei(pcm_handle, vals, bufferSize);
     snd_pcm_start(pcm_handle); // start sending data
     snd_pcm_writei(pcm_handle, vals, bufferSize);
