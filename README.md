@@ -1,6 +1,6 @@
 # Audio path analyzer
 
-This project aims to develop an audio analyzer for analyzing audio transport path quality using criteria such as:
+This project aims to develop audio analyzer for analyzing audio transport path quality using criteria such as:
 * First-order frequency response
 * Harmonic distortion properties (THD)
 * (DC offset)
