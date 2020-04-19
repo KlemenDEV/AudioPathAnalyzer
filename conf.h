@@ -21,7 +21,7 @@
 #define SIGNAL_BITS SND_PCM_FORMAT_S24
 #define SIGNAL_HALF_RANGE 8388607
 
-#define MAX_ADC_V 1.767767
+#define MAX_ADC_V 1.8
 
 #define OUT_DEVICE "hw:0,0"
 #define IN_DEVICE "hw:0,0"
