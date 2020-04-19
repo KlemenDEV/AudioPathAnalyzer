@@ -29,6 +29,9 @@ DataAcquisition::DataAcquisition() {
     cout << "Measured latency: " << this->latency << endl;
 }
 
+// somewhere in the driver code the SINGED_24 overflows, so we need to fix this here
+#define FIX_WOLFSON_DRIVER_BUG(value) (int32_t) (((value + SIGNAL_HALF_RANGE) % (2 * SIGNAL_HALF_RANGE)) - SIGNAL_HALF_RANGE)
+
 Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
     vector<Measurement> measurements;
 
@@ -68,7 +71,7 @@ Experiment DataAcquisition::measure(int lowf, int highf, int steps) {
             // de-interleave channels, apply Hann window and get dc_offset estimate
             for (int i = 0; i < size; i++) {
                 if (i % 2 == 0) {
-                    float a = values[i] / (float) SIGNAL_HALF_RANGE;
+                    float a = FIX_WOLFSON_DRIVER_BUG(values[i]) / (float) SIGNAL_HALF_RANGE;
                     int idx = i / 2;
                     dc_offset_raw += a;
                     float multiplier = 0.5f * (1 - cos(PI_2 * (float) idx / (float) in_buffer_size));
@@ -140,12 +143,13 @@ int DataAcquisition::getLatencyInSamples() {
         float ampl = 0;
         for (int i = 0; i < size; i++) {
             if (i % 2 == 0)
-                ampl += (float) abs(values[i]) / (float) (size * SIGNAL_HALF_RANGE);
+                ampl += abs(FIX_WOLFSON_DRIVER_BUG(values[i]) / (float) SIGNAL_HALF_RANGE);
         }
+        ampl /= (float) size;
 
         samplesCount++;
 
-        if (ampl > 25 && samplesCount > 1) {
+        if (ampl > 0.1) {
             reader.stop();
             gen.stop();
         }

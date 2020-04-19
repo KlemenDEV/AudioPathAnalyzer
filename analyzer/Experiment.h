@@ -90,7 +90,7 @@ public:
     static void write(Experiment &e, std::ostream &writestream = std::cout) {
         writestream << e.takes.size() << "," << e.invalidCount << "," << e.dc_offset << ",1" << endl;
         for (Measurement &m : e.takes) {
-            writestream << m.f << "," << m.a << "," << m.thd_f << "," << m.valid << endl;
+            writestream << m.f << "," << m.a << "," << m.thd_r << "," << m.valid << endl;
         }
     }
 
