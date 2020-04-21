@@ -20,6 +20,7 @@ Allowed options:
   --frequency_low arg (=20)      Sweep start frequency
   --frequency_high arg (=20000)  Sweep end frequency
   -s, --steps arg (=200)         Sweep frequency steps
+  -n, --nosmooth                 Disable frequency response smoothing
 ```
 
 # Concept

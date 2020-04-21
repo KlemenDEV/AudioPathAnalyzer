@@ -17,14 +17,9 @@
 #include "Analyzer.h"
 
 Experiment Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration,
-                                 int lowf, int highf, int steps) {
+                                 int lowf, int highf, int steps, bool smooth) {
     Experiment measurement = dataAcquisition.measure(lowf, highf, steps);
-
     cout << "Analysis complete" << endl;
-
-    float dc_offset = measurement.dc_offset - calibration.dc_offset;
-
-    cout << "DC offset: " << dc_offset << " V" << endl;
 
     // obtain maximal amplitude
     float max_a = 0;
@@ -44,8 +39,13 @@ Experiment Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &c
     }
 
     // enable this if sound card data is too noisy
-    //measurement.takes = Smoothing::smooth(measurement.takes, &Measurement::a);
+    if (smooth) {
+        cout << "Frequency response will be smoothed" << endl;
+        measurement.takes = Smoothing::smooth(measurement.takes, &Measurement::a);
+    }
 
+    float dc_offset = measurement.dc_offset - calibration.dc_offset;
+    cout << "DC offset: " << dc_offset << " V" << endl;
     measurement.dc_offset = dc_offset;
 
     return measurement;

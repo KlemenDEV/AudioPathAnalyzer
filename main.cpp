@@ -43,6 +43,9 @@ int main(int argc, char **argv) {
     auto f_high = op.add<Value<int>>("", "frequency_high", "Sweep end frequency", MEAS_F_HIGH);
     auto steps = op.add<Value<int>>("s", "steps", "Sweep frequency steps", MEAS_STEPS);
 
+    auto no_smooth = op.add<Switch>("n", "nosmooth",
+                                    "Disable frequency response smoothing");
+
     op.parse(argc, argv);
 
     if (help_option->is_set()) {
@@ -104,7 +107,7 @@ int main(int argc, char **argv) {
     }
 
     Experiment experiment = Analyzer::analyzePath(dataAcquisition, calibration, f_low->value(),
-                                                  f_high->value(), steps->value());
+                                                  f_high->value(), steps->value(), !no_smooth->is_set());
 
     cout << "#CSV" << endl;
     Experiment::write(experiment, cout);

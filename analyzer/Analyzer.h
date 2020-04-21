@@ -23,7 +23,8 @@
 class Analyzer {
 
 public:
-    static Experiment analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration, int lowf, int highf, int steps);
+    static Experiment
+    analyzePath(DataAcquisition &dataAcquisition, Experiment &calibration, int lowf, int highf, int steps, bool smooth);
 
 };
 
