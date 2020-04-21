@@ -149,7 +149,7 @@ int DataAcquisition::getLatencyInSamples() {
 
         samplesCount++;
 
-        if (ampl > 0.05 || samplesCount > 10) {
+        if (ampl > 0.02 || samplesCount > 5) {
             reader.stop();
             gen.stop();
         }
@@ -158,7 +158,7 @@ int DataAcquisition::getLatencyInSamples() {
     reader.start();
     gen.start();
 
-    if (samplesCount > 10) {
+    if (samplesCount > 5) {
         cerr << "Timeout reached measuring latecny. There is probably open loop!" << endl;
     }
 
