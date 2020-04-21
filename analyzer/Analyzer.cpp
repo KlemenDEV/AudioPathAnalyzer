@@ -43,7 +43,8 @@ Experiment Analyzer::analyzePath(DataAcquisition &dataAcquisition, Experiment &c
         measurement.takes[i].a = measurement.takes[i].a - calibration.takes[i].a;
     }
 
-    measurement.takes = Smoothing::smooth(measurement.takes, &Measurement::a);
+    // enable this if sound card data is too noisy
+    //measurement.takes = Smoothing::smooth(measurement.takes, &Measurement::a);
 
     measurement.dc_offset = dc_offset;
 
