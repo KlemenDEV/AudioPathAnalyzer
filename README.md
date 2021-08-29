@@ -5,6 +5,18 @@ This project aims to develop audio analyzer for analyzing audio transport path q
 * Harmonic distortion properties (THD)
 * (DC offset)
 
+Measurement results dashboard panel screenshots (from the Android app https://github.com/KlemenDEV/AudioPathAnalyzerApp):
+
+<p align="center">
+<img src="./screenshot1.jpg" width="550" alt="Screenshot 1">
+</p>
+
+Bode diagram display:
+
+<p align="center">
+<img src="./screenshot2.jpg" width="550" alt="Screenshot 1">
+</p>
+
 It is written for Linux ALSA audio subsystem, so ALSA-dev is required for building:
 
 `apt install libasound2-dev`
